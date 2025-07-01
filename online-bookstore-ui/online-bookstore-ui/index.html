@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Online Bookstore</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+  <nav class="navbar">
+    <h1><a href="index.html">Online Bookstore</a></h1>
+    <input type="text" id="searchBar" placeholder="Search by title, author, or genre...">
+    <select id="genreFilter">
+      <option value="">All Genres</option>
+      <option value="fiction">Fiction</option>
+      <option value="science">Science</option>
+      <option value="fantasy">Fantasy</option>
+    </select>
+    <div class="icons">
+      <a href="login.html" id="loginLink">Login</a>
+      <a href="edit_profile.html" id="profileLink" style="display:none;">Profile</a>
+      <a href="cart.html">Cart (<span id="cartCount">0</span>)</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="api-status">
+      <span id="apiStatus">Loading books...</span>
+    </div>
+
+    <h2>Featured Books</h2>
+    <div id="featuredBooks" class="book-grid"></div>
+
+    <h2>Coming Soon</h2>
+    <div id="comingSoonBooks" class="book-grid"></div>
+  </div>
+
+  <div id="apiErrorModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h3>Service Notice</h3>
+      <p id="apiErrorText"></p>
+    </div>
+  </div>
+
+  <script src="js/helpers.js"></script>
+  <script src="js/apiService.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/scripts.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      updateNav();
+      loadBooks('featuredBooks', 'featured', true);
+      loadBooks('comingSoonBooks', 'coming-soon');
+      
+      document.getElementById('searchBar').addEventListener('input', searchBooks);
+      document.getElementById('genreFilter').addEventListener('change', searchBooks);
+      
+      // Close modal when clicking X
+      document.querySelector('.close').addEventListener('click', () => {
+        document.getElementById('apiErrorModal').style.display = 'none';
+      });
+    });
+  </script>
+</body>
+</html>
