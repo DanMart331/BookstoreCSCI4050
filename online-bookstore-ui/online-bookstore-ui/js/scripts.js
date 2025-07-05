@@ -186,7 +186,7 @@ function getLocalBooksByType(type) {
         title: "The Alchemist",
         author: "Paulo Coelho",
         price: 12.99,
-        image: "assets/book_images/default.jpg",
+        image: "assets/book_images/alchemist.jpg",
         description: "A magical fable about following your dreams."
       },
       {
@@ -194,7 +194,7 @@ function getLocalBooksByType(type) {
         title: "1984",
         author: "George Orwell",
         price: 9.99,
-        image: "assets/book_images/default.jpg",
+        image: "assets/book_images/1984.jpg",
         description: "A dystopian novel about totalitarianism."
       }
     ],
