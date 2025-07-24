@@ -74,6 +74,7 @@ function handleLogout(e) {
 }
 
 async function handleLogin(e) {
+  console.log("Handle login triggered!")
   e.preventDefault();
   const form     = e.target;
   const email    = form.email.value;
@@ -87,6 +88,7 @@ async function handleLogin(e) {
       body: JSON.stringify({ email, password })
     });
     const payload = await res.json();
+    console.log(payload);
     if (!res.ok) throw new Error(payload.error || 'Login failed');
 
     const storage = remember ? localStorage : sessionStorage;
@@ -97,12 +99,14 @@ async function handleLogin(e) {
       alert('Please confirm your email before logging in.');
       window.location.href = 'login.html';
     } else if (payload.is_admin) {
+      alert('Login successful!');
       window.location.href = 'admin.html';
     } else {
+      alert('Login successful!');
       window.location.href = 'index.html';
     }
   } catch (err) {
-    alert(err.message);
+    alert('Login failed: ' + err.message);
   }
 }
 

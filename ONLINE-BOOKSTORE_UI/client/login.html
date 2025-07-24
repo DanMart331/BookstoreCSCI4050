@@ -86,22 +86,5 @@
   <!-- Updated script path -->
   <script src="/js/apiService.js"></script>
   <script src="/js/scripts.js"></script>
-  <script>
-    document.getElementById('loginForm').addEventListener('submit', async e => {
-      e.preventDefault();
-      const email = e.target.email.value;
-      const password = e.target.password.value;
-      const remember = e.target.rememberMe.checked;
-
-      try {
-        const user = await ApiService.login({ email, password, remember });
-        localStorage.setItem('user', JSON.stringify(user)); // store user for later
-        alert('Login successful!');
-        window.location.href = 'index.html';
-      } catch (err) {
-        alert('Login failed: ' + err.message);
-      }
-    });
-  </script>
 </body>
 </html>

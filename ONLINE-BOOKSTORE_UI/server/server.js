@@ -75,7 +75,7 @@ app.post('/api/login', (req, res) => {
       maxAge: remember ? 30 * 24 * 60 * 60 * 1000 : undefined
     };
     res.cookie('token', token, cookieOptions);
-    res.json({ id: user.id, name: user.name, email: user.email });
+    res.json({ id: user.id, name: user.name, email: user.email, is_admin: user.is_admin === 1, status: user.status});
   });
 });
 
