@@ -14,6 +14,7 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, '..', 'client')));
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
+app.use('/js', express.static(path.join(__dirname, 'js')));
 
 
 // Test DB Route
@@ -80,28 +81,32 @@ app.post('/api/login', (req, res) => {
 
 // Register
 app.post('/api/register', (req, res) => {
-const {
-name, email, password,
-street, city, state, zip,
-card_number, card_exp, card_cvv,
-promotion_opt_in
-} = req.body;
+  const {
+    name, email, password,
+    street, city, state, zip,
+    card_number, card_exp, card_cvv,
+    promotion_opt_in
+  } = req.body;
 
-db.get("SELECT * FROM users WHERE email = ?", [email], (err, existingUser) => {
-if (err) return res.status(500).json({ error: err.message });
-if (existingUser) return res.status(400).json({ error: "User already exists" });
+  db.get("SELECT * FROM users WHERE email = ?", [email], (err, existingUser) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (existingUser) return res.status(400).json({ error: "User already exists" });
 
-db.run(`
-INSERT INTO users
-(name, email, password, street, city, state, zip, card_number, card_exp, card_cvv, promotion_opt_in)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-[name, email, password, street, city, state, zip, card_number, card_exp, card_cvv, promotion_opt_in],
-err => {
-if (err) return res.status(500).json({ error: err.message });
-res.status(201).json({ message: "User registered successfully" });
+    db.run(`INSERT INTO users
+    (name, email, password, street, city, state, zip, card_number, card_exp, card_cvv, promotion_opt_in)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [name, email, password, street, city, state, zip, card_number, card_exp, card_cvv, promotion_opt_in],
+    (err) => {
+      if (err) {
+        console.error("Error inserting user:", err.message);
+        return res.status(500).json({ error: err.message });
       }
-    );
-  });
+
+      console.log("User registered successfully");
+      res.status(201).json({ message: "User registered successfully" });
+    }
+        );
+    });
 });
 
 app.listen(PORT, () => {

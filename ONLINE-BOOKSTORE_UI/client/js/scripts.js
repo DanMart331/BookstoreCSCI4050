@@ -81,7 +81,7 @@ async function handleLogin(e) {
   const remember = form.rememberMe.checked;
 
   try {
-    const res     = await fetch('/api/auth/login', {
+    const res     = await fetch('/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
@@ -105,6 +105,47 @@ async function handleLogin(e) {
     alert(err.message);
   }
 }
+
+async function handleRegister(e) {
+  e.preventDefault();
+  const form = e.target;
+
+  const data = {
+    name: form.name.value,
+    email: form.email.value,
+    password: form.password.value,
+    street: form.street?.value || '',
+    city: form.city?.value || '',
+    state: form.state?.value || '',
+    zip: form.zip?.value || '',
+    card_number: form.card_number?.value || '',
+    card_exp: form.card_exp?.value || '',
+    card_cvv: form.card_cvv?.value || '',
+    promotion_opt_in: form.promotion_opt_in?.checked ? 1 : 0
+  };
+
+  try {
+    const res = await fetch('/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+
+    console.log('Response status:', res.status);  // Debug log
+
+    const payload = await res.json();
+    console.log('Response payload:', payload);    // Debug log
+
+    if (!res.ok) throw new Error(payload.error || 'Registration failed');
+
+    showToast('Account created! You can now log in.');
+    window.location.href = 'login.html';
+  } catch (err) {
+    console.error(err);
+    alert(err.message);
+  }
+}
+
 
 function updateCartCount() {
   const cart = JSON.parse(localStorage.getItem('cart') || '[]');
@@ -213,6 +254,8 @@ document.addEventListener('DOMContentLoaded', () => {
   updateNav();
   document.getElementById('logoutLink')?.addEventListener('click', handleLogout);
   document.getElementById('loginForm')?.addEventListener('submit', handleLogin);
+
+  document.getElementById('registerForm')?.addEventListener('submit', handleRegister);
 
   loadFeaturedBooks();
   loadComingSoonBooks();
