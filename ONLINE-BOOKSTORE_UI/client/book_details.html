@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Book Details</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <nav class="navbar">
+    <h1><a href="index.html">Online Bookstore</a></h1>
+
+    <div class="icons">
+      <a href="cart.html" id="cartLink">
+        <i class="fas fa-shopping-cart"></i>
+        Cart (<span id="cartCount">0</span>)
+      </a>
+      <a href="login.html" id="loginLink">Login</a>
+
+      <a href="#" id="logoutLink" style="display:none;">Logout</a>
+      <a href="edit_profile.html" id="profileLink" style="display:none;">Profile</a>
+      <a href="admin.html" id="adminLink" style="display:none;">…</a>
+
+      <a href="register.html" id="registerLink">Register</a>
+      <a href="edit_profile.html" id="profileLink" style="display:none;">Profile</a>
+      <a href="admin.html" id="adminLink" style="display:none;">
+        <i class="fas fa-user-shield"></i>
+        Admin
+      </a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div id="bookDetails" class="book-details">
+      <div class="book-image">
+        <img id="bookImage" src="" alt="Book cover">
+      </div>
+      <div class="book-info">
+        <h1 id="bookTitle"></h1>
+        <p class="author" id="bookAuthor"></p>
+        <p class="genre" id="bookGenre"></p>
+        <p class="price" id="bookPrice"></p>
+        <p class="description" id="bookDescription"></p>
+        <button id="addToCartBtn">Add to Cart</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/auth.js"></script>
+  <script src="js/scripts.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      updateNav();
+      
+      const urlParams = new URLSearchParams(window.location.search);
+      const bookId = urlParams.get('id');
+      
+      if (bookId) {
+        fetchBookDetails(bookId);
+      } else {
+        window.location.href = 'index.html';
+      }
+    });
+
+    async function fetchBookDetails(bookId) {
+      try {
+        const response = await fetch(`/api/books/${bookId}`);
+        const book = await response.json();
+        
+        if (!book) {
+          throw new Error('Book not found');
+        }
+        
+        document.getElementById('bookTitle').textContent = book.title;
+        document.getElementById('bookAuthor').textContent = `by ${book.author}`;
+        document.getElementById('bookGenre').textContent = `Genre: ${book.genre}`;
+        document.getElementById('bookPrice').textContent = `$${book.price.toFixed(2)}`;
+        document.getElementById('bookDescription').textContent = book.description || 'No Description Available.';
+        document.getElementById('bookImage').src = book.image || 'assets/book_images/default.jpg';
+        document.getElementById('bookImage').alt = book.title;
+        
+        document.getElementById('addToCartBtn').onclick = () => {
+          addToCart(book.id);
+          alert(`${book.title} Added To Cart!`);
+        };
+      } catch (error) {
+        console.error('Error Loading Book Details:', error);
+        document.getElementById('bookDetails').innerHTML = `
+          <p>Error loading book details. <a href="index.html">Return to homepage</a></p>
+        `;
+      }
+    }
+  </script>
+</body>
+</html>
