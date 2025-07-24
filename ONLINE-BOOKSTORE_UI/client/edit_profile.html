@@ -17,26 +17,31 @@
     </div>
   </nav>
 
-  <form>
+  <form id="editProfileForm">
     <h2>Edit Profile</h2>
+    
     <h3>Personal Info</h3>
-    <input placeholder="Full Name">
-    <input placeholder="Email">
+    <input id="name" name="name" placeholder="Full Name">
+    <input id="email" name="email" placeholder="Email" disabled>
 
     <h3>Change Password</h3>
-    <input placeholder="Old Password" type="password">
-    <input placeholder="New Password" type="password">
+    <input id="oldPassword" type="password" placeholder="Old Password" disabled>
+    <input id="newPassword" type="password" placeholder="New Password">
 
     <h3>Address</h3>
-    <input placeholder="Street">
-    <input placeholder="City">
-    <input placeholder="State">
-    <input placeholder="ZIP">
+    <input id="street" name="street" placeholder="Street">
+    <input id="city" name="city" placeholder="City">
+    <input id="state" name="state" placeholder="State">
+    <input id="zip" name="zip" placeholder="ZIP">
 
     <h3>Payment Info</h3>
-    <input placeholder="Card Number">
-    <input placeholder="Expiration">
-    <input placeholder="CVV">
+    <input id="card_number" name="card_number" placeholder="Card Number">
+    <input id="card_exp" name="card_exp" placeholder="Expiration">
+    <input id="card_cvv" name="card_cvv" placeholder="CVV">
+
+    <label>
+      <input id="promotion_opt_in" type="checkbox"> Receive promotions
+    </label>
 
     <button type="submit">Save Changes</button>
   </form>

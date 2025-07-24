@@ -74,7 +74,6 @@ function handleLogout(e) {
 }
 
 async function handleLogin(e) {
-  console.log("Handle login triggered!")
   e.preventDefault();
   const form     = e.target;
   const email    = form.email.value;
@@ -144,6 +143,79 @@ async function handleRegister(e) {
 
     showToast('Account created! You can now log in.');
     window.location.href = 'login.html';
+  } catch (err) {
+    console.error(err);
+    alert(err.message);
+  }
+}
+
+async function fillProfile() {
+  const user = getCurrentUser();
+  if (!user) return window.location.href = 'login.html';
+
+  try {
+    const res = await fetch(`/api/users/${user.id}`);
+    if (!res.ok) throw new Error('Failed to fetch user profile');
+    console.log(user);
+    document.getElementById('name').value = user.name;
+    document.getElementById('email').value = user.email;
+    document.getElementById('oldPassword').value = user.password;
+    document.getElementById('newPassword').value = '';
+    document.getElementById('street').value = user.street || '';
+    document.getElementById('city').value = user.city || '';
+    document.getElementById('state').value = user.state || '';
+    document.getElementById('zip').value = user.zip || '';
+    document.getElementById('card_number').value = user.card_number || '';
+    document.getElementById('card_exp').value = user.card_exp || '';
+    document.getElementById('card_cvv').value = user.card_cvv || '';
+    document.getElementById('promotion_opt_in').checked = user.promotion_opt_in === 1;
+  } catch (err) {
+    console.error(err);
+    alert('Error loading profile');
+  }
+}
+
+async function handleProfileUpdate(e) {
+  e.preventDefault();
+  const user = getCurrentUser();
+  if (!user) return;
+
+  const oldPassword = document.getElementById('oldPassword').value;
+  const newPassword = document.getElementById('newPassword').value;
+
+  const updated = {
+    name: document.getElementById('name').value,
+    email: document.getElementById('email').value,
+    password: oldPassword,
+    street: document.getElementById('street').value,
+    city: document.getElementById('city').value,
+    state: document.getElementById('state').value,
+    zip: document.getElementById('zip').value,
+    card_number: document.getElementById('card_number').value,
+    card_exp: document.getElementById('card_exp').value,
+    card_cvv: document.getElementById('card_cvv').value,
+    promotion_opt_in: document.getElementById('promotion_opt_in').checked ? 1 : 0
+  };
+
+  if (newPassword) {
+    // Only include passwords if newPassword is filled
+    updated.password = newPassword;
+  }
+
+  try {
+    const res = await fetch(`/api/users/${user.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updated)
+    });
+
+    console.log(updated)
+    localStorage.setItem('user', JSON.stringify(updated));
+    sessionStorage.setItem('user', JSON.stringify(updated));
+
+    if (!res.ok) throw new Error('Failed to update profile');
+    alert('Profile updated successfully!');
+    fillProfile(); // Refresh the form just in case
   } catch (err) {
     console.error(err);
     alert(err.message);
@@ -261,6 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('registerForm')?.addEventListener('submit', handleRegister);
 
+  document.getElementById('editProfileForm')?.addEventListener('submit', handleProfileUpdate);
   loadFeaturedBooks();
   loadComingSoonBooks();
   document.getElementById('searchBar')?.addEventListener('input', searchBooks);
@@ -270,3 +343,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('apiErrorModal').style.display = 'none';
   });
 });
+
+if (window.location.pathname.includes('edit_profile.html')) {
+  document.addEventListener('DOMContentLoaded', fillProfile);
+  document.getElementById('editProfileForm')?.addEventListener('submit', handleProfileUpdate);
+
+}
