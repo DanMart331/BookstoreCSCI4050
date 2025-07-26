@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Edit Profile – Online Bookstore</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+</head>
+<body>
+  <nav class="navbar">
+    <h1><a href="index.html">Online Bookstore</a></h1>
+    <input id="searchBar" type="text" placeholder="Search..." />
+    <div class="icons">
+      <a href="cart.html" id="cartLink">
+        <i class="fas fa-shopping-cart"></i> Cart (<span id="cartCount">0</span>)
+      </a>
+      <a href="#" id="logoutLink">Logout</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h2>Edit Profile</h2>
+    <form id="profileForm">
+      <div class="form-section">
+        <h3>Personal Info</h3>
+        <div class="form-group">
+          <label for="name">Full Name</label>
+          <input id="name" type="text" required disabled />
+        </div>
+        <div class="form-group">
+          <label for="email">Email (cannot change)</label>
+          <input id="email" type="email" disabled />
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>Change Password</h3>
+        <div class="form-group">
+          <label for="oldPassword">Old Password</label>
+          <input id="oldPassword" type="password" disabled />
+        </div>
+        <div class="form-group">
+          <label for="newPassword">New Password</label>
+          <input id="newPassword" type="password" disabled />
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>Address</h3>
+        <div class="form-group">
+          <label for="street">Street</label>
+          <input id="street" type="text" disabled />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="city">City</label>
+            <input id="city" type="text" disabled />
+          </div>
+          <div class="form-group">
+            <label for="state">State</label>
+            <input id="state" type="text" disabled />
+          </div>
+          <div class="form-group">
+            <label for="zip">ZIP</label>
+            <input id="zip" type="text" disabled />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>Payment Card</h3>
+        <div class="form-group">
+          <label for="cardNumber">Card Number</label>
+          <input id="cardNumber" type="text" disabled />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cardExp">Expiration</label>
+            <input id="cardExp" type="text" disabled />
+          </div>
+          <div class="form-group">
+            <label for="cardCvv">CVV</label>
+            <input id="cardCvv" type="text" disabled />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>Promotions</h3>
+        <label>
+          <input id="promoOpt" type="checkbox" disabled />
+          Opt‑in to promotional emails
+        </label>
+      </div>
+
+      <button type="button" id="editBtn" class="button">Edit</button>
+      <button type="submit" id="saveBtn" class="submit-btn" style="display:none;">
+        Save Changes
+      </button>
+    </form>
+  </div>
+
+  <script src="js/apiService.js"></script>
+  <script src="js/edit_profile.js"></script>
+</body>
+</html>

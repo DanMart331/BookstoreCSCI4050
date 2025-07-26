@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Manage Users – Admin</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+</head>
+<body>
+  <nav class="navbar">
+    <h1><a href="admin.html">Admin Dashboard</a></h1>
+    <div class="icons">
+      <a href="#" id="logoutLink">Logout</a>
+      <a href="admin.html">Back to Dashboard</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h2>Manage Users</h2>
+    <div class="table-responsive">
+      <table id="usersTable" class="data-table">
+        <colgroup>
+          <col style="width:5%;" />
+          <col style="width:12%;" />
+          <col style="width:20%;" />
+          <col style="width:8%;" />
+          <col style="width:8%;" />
+          <col style="width:8%;" />
+          <col style="width:8%;" />
+          <col style="width:10%;" />
+          <col style="width:8%;" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>City</th>
+            <th>State</th>
+            <th>ZIP</th>
+            <th>Promo</th>
+            <th>Status</th>
+            <th>Admin</th>
+          </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="js/apiService.js"></script>
+  <script src="js/admin_users.js"></script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Register</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <nav class="navbar">
+    <h1><a href="index.html">Online Bookstore</a></h1>
+
+    <div class="icons">
+      <a href="cart.html" id="cartLink">
+        <i class="fas fa-shopping-cart"></i>
+        Cart (<span id="cartCount">0</span>)
+      </a>
+      <a href="login.html" id="loginLink">Login</a>
+      <a href="edit_profile.html" id="profileLink" style="display:none;">Profile</a>
+      <a href="admin_login.html" id="adminLoginLink">Admin Login</a>
+      <a href="admin.html" id="adminDashboardLink" style="display:none;">
+        <i class="fas fa-user-shield"></i> Dashboard
+      </a>
+    </div>
+  </nav>
+
+  <form id="registerForm">
+    <h2>Create Account</h2>
+
+    <input name="name" type="text" placeholder="Full Name" required>
+    <input name="email" type="email" placeholder="Email" required>
+    <input name="password" type="password" placeholder="Password" required>
+
+    <h3>Address</h3>
+    <input name="street" placeholder="Street" required>
+    <input name="city"   placeholder="City"   required>
+    <input name="state"  placeholder="State"  required>
+    <input name="zip"    placeholder="ZIP"    required>
+
+    <h3>Payment Info</h3>
+    <input name="card_number" placeholder="Card Number" required>
+    <input name="card_exp"    placeholder="MM/YY"       required>
+    <input name="card_cvv"    placeholder="CVV"         required>
+
+    <div class="form-group">
+      <label>
+        <input name="promotion_opt_in" type="checkbox">
+        Subscribe to promotions and special offers
+      </label>
+    </div>
+
+    <button type="submit" class="submit-btn">Create Account</button>
+  </form>
+
+  <script src="js/apiService.js"></script>
+  <script>
+    document.getElementById('registerForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const form = e.target;
+      const data = {
+        name:            form.name.value,
+        email:           form.email.value,
+        password:        form.password.value,
+        street:          form.street.value,
+        city:            form.city.value,
+        state:           form.state.value,
+        zip:             form.zip.value,
+        card_number:     form.card_number.value,
+        card_exp:        form.card_exp.value,
+        card_cvv:        form.card_cvv.value,
+        promotion_opt_in: form.promotion_opt_in.checked ? 1 : 0
+      };
+
+      try {
+        await ApiService.register(data);
+        alert('Registration Successful! Please Check Your Email To Confirm Your Account.');
+        window.location.href = 'login.html';
+      } catch (err) {
+        alert(err.message || 'Registration Failed! :(');
+        console.error(err);
+      }
+    });
+  </script>
+</body>
+</html>
