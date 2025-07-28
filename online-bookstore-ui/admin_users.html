@@ -11,6 +11,44 @@
     crossorigin="anonymous"
     referrerpolicy="no-referrer"
   />
+  <style>
+    /* Basic CSS for selected row and button styling */
+    #usersTable tbody tr {
+      cursor: pointer; /* Indicate rows are clickable */
+    }
+    #usersTable tbody tr.selected {
+      background-color: #e0f7fa; /* Light blue for selected row */
+      border: 1px solid #00bcd4;
+    }
+    .action-buttons-container {
+      margin-top: 20px;
+      display: flex; /* Arrange buttons side-by-side */
+      gap: 10px; /* Space between buttons */
+    }
+    .action-button-global {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1em;
+      opacity: 0.7; /* Slightly dim when disabled */
+    }
+    .action-button-global:enabled {
+      opacity: 1; /* Full opacity when enabled */
+    }
+    #deleteSelectedUserBtn {
+      background-color: #dc3545; /* Red */
+      color: white;
+    }
+    #toggleAdminSelectedUserBtn {
+      background-color: #007bff; /* Blue */
+      color: white;
+    }
+    #toggleAdminSelectedUserBtn.is-admin {
+        background-color: #ffc107; /* Yellow when "Remove Admin" */
+        color: #333;
+    }
+  </style>
 </head>
 <body>
   <nav class="navbar">
@@ -50,9 +88,13 @@
           </tr>
         </thead>
         <tbody>
-
-        </tbody>
+          </tbody>
       </table>
+    </div>
+
+    <div class="action-buttons-container">
+      <button id="deleteSelectedUserBtn" class="action-button-global" disabled>Delete Selected User</button>
+      <button id="toggleAdminSelectedUserBtn" class="action-button-global" disabled>Make Admin</button>
     </div>
   </div>
 

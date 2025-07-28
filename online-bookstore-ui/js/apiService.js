@@ -4,10 +4,17 @@ const API_CONFIG = {
   },
   STRIPE: {
     PUBLIC_KEY: 'pk_test_51Rel5jP9fb1HIuhDPq88snJjaIjozxstdS9pMgH2dgNFXmIB8W88wI7W7dndy4OOZ7jgFtq14JZQHR6V7TKGjEHU00R231FEA4'
+  },
+  AUTH: { // Added for consistency, though '/api/auth' is hardcoded in register
+    BASE_URL: '/api/auth'
+  },
+  ADMIN_USERS: { // NEW: Configuration for admin user routes
+    BASE_URL: '/api/admin/users'
   }
 };
 
 class ApiService {
+  // --- Bookstore API Methods ---
   static async getFeaturedBooks() {
     const res = await fetch(`${API_CONFIG.BOOKSTORE.BASE_URL}/featured`);
     if (!res.ok) {
@@ -39,9 +46,10 @@ class ApiService {
     if (!res.ok) {
       throw new Error(`Error fetching book details: ${res.statusText}`);
     }
-    return res.json(); 
+    return res.json();
   }
 
+  // --- Payment API Methods ---
   static async createPaymentIntent(amount) {
     const res = await fetch('/api/payments/create-intent', {
       method: 'POST',
@@ -51,11 +59,11 @@ class ApiService {
     if (!res.ok) {
       throw new Error(`Error creating payment intent: ${res.statusText}`);
     }
-    return res.json(); 
+    return res.json();
   }
 
   static async register(data) {
-    const res = await fetch('/api/auth/register', {
+    const res = await fetch(`${API_CONFIG.AUTH.BASE_URL}/register`, { // Used API_CONFIG here
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
@@ -64,6 +72,35 @@ class ApiService {
     if (!res.ok) throw new Error(payload.error || 'Registration failed');
     return payload;
   }
+
+  static async getUsers() {
+    const res = await fetch(API_CONFIG.ADMIN_USERS.BASE_URL); // Using API_CONFIG
+    const payload = await res.json();
+    if (!res.ok) throw new Error(payload.error || 'Failed to retrieve users');
+    return payload;
+  }
+
+  static async updateUserAdminStatus(userId, isAdmin) {
+    const res = await fetch(`${API_CONFIG.ADMIN_USERS.BASE_URL}/${userId}/admin`, { // Using API_CONFIG
+      method: 'PUT', // Using PUT for updating an existing resource
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_admin: isAdmin }) // Send the new status
+    });
+    const payload = await res.json();
+    if (!res.ok) throw new Error(payload.error || 'Failed to update admin status');
+    return payload;
+  }
+
+  static async deleteUser(userId) {
+    const res = await fetch(`${API_CONFIG.ADMIN_USERS.BASE_URL}/${userId}`, { // Using API_CONFIG
+      method: 'DELETE' // Using DELETE for deleting a resource
+    });
+    const payload = await res.json(); // Server might send a confirmation message
+    if (!res.ok) throw new Error(payload.error || 'Failed to delete user');
+    return payload;
+  }
+
+
 }
 
 window.API_CONFIG = API_CONFIG;
