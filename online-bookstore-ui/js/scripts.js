@@ -12,7 +12,6 @@ function getCurrentUser() {
   return null;
 }
 
-
 function showLoading(container, message = 'Loading...') {
   container.innerHTML = `<div class="loading">${message}</div>`;
 }
@@ -45,7 +44,6 @@ function showApiError(message) {
   modal.style.display = 'flex';
 }
 
-// In scripts.js
 function updateNav() {
   const user = getCurrentUser();
   const loginLink = document.getElementById('loginLink');
@@ -55,37 +53,37 @@ function updateNav() {
   const logoutLink = document.getElementById('logoutLink');
   const profileLink = document.getElementById('profileLink');
 
-  // Use optional chaining (`?.`) or `if (element)` checks for elements that might not exist on every page
   if (user) {
-    loginLink?.style.display = 'none';
-    registerLink?.style.display = 'none';
-    adminLoginLink?.style.display = 'none'; // Already had this one
-    logoutLink?.style.display = 'inline';
-    profileLink?.style.display = 'inline';
+    loginLink.style.display = 'none';
+    registerLink.style.display = 'none';
+    adminLoginLink.style.display = 'none';
+    logoutLink.style.display = 'inline';
+    profileLink.style.display = 'inline';
     if (adminDashboardLink) {
       adminDashboardLink.style.display = user.is_admin ? 'inline' : 'none';
     }
   } else {
-    loginLink?.style.display = 'inline';
-    registerLink?.style.display = 'inline';
-    logoutLink?.style.display = 'none';
-    profileLink?.style.display = 'none';
-    if (adminLoginLink) adminLoginLink.style.display = 'inline';
-    if (adminDashboardLink) adminDashboardLink.style.display = 'none';
+    loginLink.style.display = 'inline';
+    registerLink.style.display = 'inline';
+    logoutLink.style.display = 'none';
+    profileLink.style.display = 'none';
+    adminLoginLink.style.display = 'inline';
+    if (adminDashboardLink) {
+      adminDashboardLink.style.display = 'none';
+    }
   }
   updateCartCount();
-  // Removed updateAddToCartButtonStateForAllBooks() as per previous instructions
 }
 
 async function handleLogin(e) {
   e.preventDefault();
-  const form     = e.target;
-  const email    = form.email.value;
+  const form = e.target;
+  const email = form.email.value;
   const password = form.password.value;
   const remember = form.rememberMe.checked;
 
   try {
-    const res      = await fetch('/api/auth/login', {
+    const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
@@ -109,12 +107,12 @@ async function handleLogin(e) {
 
 async function handleAdminLogin(e) {
   e.preventDefault();
-  const form     = e.target;
-  const email    = form.email.value;
+  const form = e.target;
+  const email = form.email.value;
   const password = form.password.value;
 
   try {
-    const res      = await fetch('/api/auth/login', {
+    const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
@@ -142,7 +140,7 @@ function handleLogout(e) {
 function updateCartCount() {
   const cart = JSON.parse(localStorage.getItem('cart') || '[]');
   const total = cart.reduce((sum, i) => sum + i.quantity, 0);
-  const el    = document.getElementById('cartCount');
+  const el = document.getElementById('cartCount');
   if (el) el.textContent = total;
 }
 
@@ -151,16 +149,15 @@ function viewBookDetails(id) {
 }
 
 async function addToCart(id) {
-  // Check if user is logged in
-  if (!getCurrentUser()) { // Use getCurrentUser() directly or a simple isLoggedIn() if you re-add it
+  if (!getCurrentUser()) {
     alert('Please log in or register to add books to your cart.');
-    return; // Stop execution if not logged in
+    return;
   }
 
   try {
     const book = await ApiService.getBookDetails(id);
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    const ex   = cart.find(i => i.id === book.id);
+    const ex = cart.find(i => i.id === book.id);
     if (ex) ex.quantity += 1;
     else cart.push({ id: book.id, title: book.title, price: book.price, image: book.image, quantity: 1 });
     localStorage.setItem('cart', JSON.stringify(cart));
@@ -179,7 +176,7 @@ async function loadFeaturedBooks() {
   updateApiStatus('Loading featured books...');
   try {
     const { items } = await ApiService.getFeaturedBooks();
-    renderBooks(container, items); // Removed enableCart, it's always true
+    renderBooks(container, items);
     updateApiStatus('Featured books loaded');
   } catch (err) {
     showError(container, 'Unable to load featured books');
@@ -195,7 +192,7 @@ async function loadComingSoonBooks() {
   updateApiStatus('Loading coming soon');
   try {
     const { items } = await ApiService.getComingSoon();
-    renderBooks(container, items); // Removed enableCart, it's always true
+    renderBooks(container, items);
     updateApiStatus('Coming soon loaded');
   } catch (err) {
     showError(container, 'Unable to load coming soon');
@@ -236,7 +233,7 @@ async function searchBooks() {
     if (books.length === 0) {
       container.innerHTML = '<p class="no-results">No books found for your search.</p>';
     } else {
-      renderBooks(container, books); // Removed enableCart
+      renderBooks(container, books);
     }
 
     updateApiStatus(`Found ${books.length} books`);
@@ -247,8 +244,7 @@ async function searchBooks() {
   }
 }
 
-// MODIFIED: renderBooks function
-function renderBooks(container, books) { // Removed enableCart parameter
+function renderBooks(container, books) {
   container.innerHTML = '';
   if (!books || books.length === 0) {
     container.innerHTML = '<p class="no-results">No books found.</p>';
@@ -270,20 +266,16 @@ function renderBooks(container, books) { // Removed enableCart parameter
       </div>
     `;
 
-    // Attach event listener for the dynamically created button
     const addToCartButton = el.querySelector('.add-to-cart-btn');
     if (addToCartButton) {
-        // The addToCart function itself will handle the login check and alert
-        addToCartButton.addEventListener('click', (event) => {
-            event.preventDefault(); // Prevent default link behavior if button is inside a link
-            addToCart(book.id);
-        });
+      addToCartButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        addToCart(book.id);
+      });
     }
     container.appendChild(el);
   });
 }
-
-// REMOVED: updateAddToCartButtonStateForAllBooks() - Not needed if buttons are always visible/enabled
 
 document.addEventListener('DOMContentLoaded', function() {
   updateNav();
