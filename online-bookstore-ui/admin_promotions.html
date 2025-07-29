@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Manage Promotions – Admin</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+</head>
+<body>
+  <nav class="navbar">
+    <h1><a href="admin.html">Admin Dashboard</a></h1>
+    <div class="icons">
+      <a href="#" id="logoutLink">Logout</a>
+      <a href="admin.html">Back to Dashboard</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h2>Manage Promotions</h2>
+    <button id="newPromotionBtn" class="submit-btn">+ Add New Promotion</button>
+
+    <div class="table-responsive">
+      <table id="promotionsTable" class="data-table">
+        <colgroup>
+          <col style="width:5%;" />    <col style="width:15%;" />   <col style="width:10%;" />   <col style="width:20%;" />   <col style="width:20%;" />   <col style="width:10%;" />   <col style="width:20%;" />   </colgroup>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Code</th>
+            <th>Discount (%)</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Active</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="promotionModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h3 id="modalTitle">New Promotion</h3>
+      <form id="promotionForm">
+        <input type="hidden" id="promotionId" />
+        <div class="form-group">
+          <label for="code">Promotion Code</label>
+          <input type="text" id="code" required />
+        </div>
+        <div class="form-group">
+          <label for="discount">Discount Percentage</label>
+          <input type="number" id="discount" step="0.01" min="0" max="100" required />
+        </div>
+        <div class="form-group">
+          <label for="startDate">Start Date</label>
+          <input type="date" id="startDate" required />
+        </div>
+        <div class="form-group">
+          <label for="endDate">End Date</label>
+          <input type="date" id="endDate" required />
+        </div>
+        <div class="form-group">
+          <label><input type="checkbox" id="active" /> Active</label>
+        </div>
+        <button type="submit" class="submit-btn">Save Promotion</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/apiService.js"></script>
+  <script src="js/scripts.js"></script> <script src="js/admin_promotions.js"></script> <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = JSON.parse(localStorage.getItem('user') || 'null');
+      if (!user?.is_admin) {
+        alert('Admin access only');
+        window.location.href = 'admin_login.html';
+      }
+    });
+  </script>
+</body>
+</html>

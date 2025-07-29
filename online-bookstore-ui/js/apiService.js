@@ -10,6 +10,9 @@ const API_CONFIG = {
   },
   ADMIN_USERS: { // NEW: Configuration for admin user routes
     BASE_URL: '/api/admin/users'
+  },
+  PROMOTIONS: { // NEW: Configuration for promotions routes
+    BASE_URL: '/api/admin/promotions'
   }
 };
 
@@ -97,6 +100,51 @@ class ApiService {
     });
     const payload = await res.json(); // Server might send a confirmation message
     if (!res.ok) throw new Error(payload.error || 'Failed to delete user');
+    return payload;
+  }
+
+  static async getPromotions() {
+    const res = await fetch(API_CONFIG.PROMOTIONS.BASE_URL);
+    const payload = await res.json();
+    if (!res.ok) throw new Error(payload.error || 'Failed to retrieve promotions');
+    return payload;
+  }
+
+  static async getPromotionById(promoId) {
+    const res = await fetch(`${API_CONFIG.PROMOTIONS.BASE_URL}/${promoId}`);
+    const payload = await res.json();
+    if (!res.ok) throw new Error(payload.error || 'Failed to retrieve promotion details');
+    return payload;
+  }
+
+  static async createPromotion(promoData) {
+    const res = await fetch(API_CONFIG.PROMOTIONS.BASE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(promoData)
+    });
+    const payload = await res.json();
+    if (!res.ok) throw new Error(payload.error || 'Failed to create promotion');
+    return payload;
+  }
+
+  static async updatePromotion(promoId, promoData) {
+    const res = await fetch(`${API_CONFIG.PROMOTIONS.BASE_URL}/${promoId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(promoData)
+    });
+    const payload = await res.json();
+    if (!res.ok) throw new Error(payload.error || 'Failed to update promotion');
+    return payload;
+  }
+
+  static async deletePromotion(promoId) {
+    const res = await fetch(`${API_CONFIG.PROMOTIONS.BASE_URL}/${promoId}`, {
+      method: 'DELETE'
+    });
+    const payload = await res.json();
+    if (!res.ok) throw new Error(payload.error || 'Failed to delete promotion');
     return payload;
   }
 

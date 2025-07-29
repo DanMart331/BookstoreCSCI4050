@@ -12,6 +12,7 @@ function getCurrentUser() {
   return null;
 }
 
+
 function showLoading(container, message = 'Loading...') {
   container.innerHTML = `<div class="loading">${message}</div>`;
 }
@@ -44,33 +45,36 @@ function showApiError(message) {
   modal.style.display = 'flex';
 }
 
+// In scripts.js
 function updateNav() {
-  const user               = getCurrentUser();
-  const loginLink          = document.getElementById('loginLink');
-  const registerLink       = document.getElementById('registerLink');
-  const adminLoginLink     = document.getElementById('adminLoginLink');
+  const user = getCurrentUser();
+  const loginLink = document.getElementById('loginLink');
+  const registerLink = document.getElementById('registerLink');
+  const adminLoginLink = document.getElementById('adminLoginLink');
   const adminDashboardLink = document.getElementById('adminDashboardLink');
-  const logoutLink         = document.getElementById('logoutLink');
-  const profileLink        = document.getElementById('profileLink');
+  const logoutLink = document.getElementById('logoutLink');
+  const profileLink = document.getElementById('profileLink');
 
+  // Use optional chaining (`?.`) or `if (element)` checks for elements that might not exist on every page
   if (user) {
-    loginLink.style.display          = 'none';
-    registerLink.style.display       = 'none';
-    adminLoginLink && (adminLoginLink.style.display = 'none');
-    logoutLink.style.display         = 'inline';
-    profileLink.style.display        = 'inline';
+    loginLink?.style.display = 'none';
+    registerLink?.style.display = 'none';
+    adminLoginLink?.style.display = 'none'; // Already had this one
+    logoutLink?.style.display = 'inline';
+    profileLink?.style.display = 'inline';
     if (adminDashboardLink) {
       adminDashboardLink.style.display = user.is_admin ? 'inline' : 'none';
     }
   } else {
-    loginLink.style.display          = 'inline';
-    registerLink.style.display       = 'inline';
-    logoutLink.style.display         = 'none';
-    profileLink.style.display        = 'none';
+    loginLink?.style.display = 'inline';
+    registerLink?.style.display = 'inline';
+    logoutLink?.style.display = 'none';
+    profileLink?.style.display = 'none';
     if (adminLoginLink) adminLoginLink.style.display = 'inline';
     if (adminDashboardLink) adminDashboardLink.style.display = 'none';
   }
   updateCartCount();
+  // Removed updateAddToCartButtonStateForAllBooks() as per previous instructions
 }
 
 async function handleLogin(e) {
@@ -81,7 +85,7 @@ async function handleLogin(e) {
   const remember = form.rememberMe.checked;
 
   try {
-    const res     = await fetch('/api/auth/login', {
+    const res      = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
@@ -110,7 +114,7 @@ async function handleAdminLogin(e) {
   const password = form.password.value;
 
   try {
-    const res     = await fetch('/api/auth/login', {
+    const res      = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
@@ -147,6 +151,12 @@ function viewBookDetails(id) {
 }
 
 async function addToCart(id) {
+  // Check if user is logged in
+  if (!getCurrentUser()) { // Use getCurrentUser() directly or a simple isLoggedIn() if you re-add it
+    alert('Please log in or register to add books to your cart.');
+    return; // Stop execution if not logged in
+  }
+
   try {
     const book = await ApiService.getBookDetails(id);
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
@@ -157,6 +167,7 @@ async function addToCart(id) {
     updateCartCount();
     showToast(`${book.title} added to cart`);
   } catch (err) {
+    console.error('Failed to add to cart:', err);
     showToast('Failed to add to cart', true);
   }
 }
@@ -168,11 +179,12 @@ async function loadFeaturedBooks() {
   updateApiStatus('Loading featured books...');
   try {
     const { items } = await ApiService.getFeaturedBooks();
-    renderBooks(container, items, true);
+    renderBooks(container, items); // Removed enableCart, it's always true
     updateApiStatus('Featured books loaded');
   } catch (err) {
     showError(container, 'Unable to load featured books');
     showApiError('Featured service unavailable');
+    console.error('Error loading featured books:', err);
   }
 }
 
@@ -183,11 +195,12 @@ async function loadComingSoonBooks() {
   updateApiStatus('Loading coming soon');
   try {
     const { items } = await ApiService.getComingSoon();
-    renderBooks(container, items, false);
+    renderBooks(container, items); // Removed enableCart, it's always true
     updateApiStatus('Coming soon loaded');
   } catch (err) {
     showError(container, 'Unable to load coming soon');
     showApiError('ComingSoon service unavailable');
+    console.error('Error loading coming soon books:', err);
   }
 }
 
@@ -195,43 +208,82 @@ async function searchBooks() {
   const query = document.getElementById('searchBar')?.value.trim() || '';
   const genre = document.getElementById('genreFilter')?.value || '';
   const container = document.getElementById('featuredBooks');
+  const comingSoonContainer = document.getElementById('comingSoonBooks');
+
   if (!container) return;
-  if (!query && !genre) return loadFeaturedBooks();
+
+  if (!query && !genre) {
+    container.innerHTML = '';
+    comingSoonContainer.innerHTML = '';
+    await loadFeaturedBooks();
+    await loadComingSoonBooks();
+    return;
+  }
+
   showLoading(container, 'Searching books...');
   updateApiStatus('Searching books...');
   try {
     const { items } = await ApiService.searchBooks(query);
     let books = items;
+
     if (genre) {
       books = books.filter(b => b.genre?.toLowerCase() === genre.toLowerCase());
     }
-    renderBooks(container, books, true);
+
+    container.innerHTML = '';
+    comingSoonContainer.innerHTML = '';
+
+    if (books.length === 0) {
+      container.innerHTML = '<p class="no-results">No books found for your search.</p>';
+    } else {
+      renderBooks(container, books); // Removed enableCart
+    }
+
     updateApiStatus(`Found ${books.length} books`);
   } catch (err) {
     showError(container, 'Search failed');
     showApiError('Search service unavailable');
+    console.error('Search books error:', err);
   }
 }
 
-function renderBooks(container, books, enableCart) {
+// MODIFIED: renderBooks function
+function renderBooks(container, books) { // Removed enableCart parameter
   container.innerHTML = '';
-  if (!books.length) {
-    container.innerHTML = '<p class="no-results">No books found</p>';
+  if (!books || books.length === 0) {
+    container.innerHTML = '<p class="no-results">No books found.</p>';
     return;
   }
+
   books.forEach(book => {
     const el = document.createElement('div');
     el.className = 'book';
     el.innerHTML = `
-      <img src="${book.image}" alt="${book.title}" onclick="viewBookDetails('${book.id}')">
+      <img src="${book.image || 'assets/book_images/default.jpg'}" alt="${book.title}" onclick="viewBookDetails('${book.id}')">
       <h3 onclick="viewBookDetails('${book.id}')">${book.title}</h3>
       <p class="author">by ${book.author}</p>
       <p class="price">$${book.price.toFixed(2)}</p>
-      ${enableCart ? `<button onclick="addToCart('${book.id}')">Add to Cart</button>` : ''}
+      <div class="add-to-cart-container">
+        <button class="add-to-cart-btn" data-book-id="${book.id}">
+          Add to Cart
+        </button>
+      </div>
     `;
+
+    // Attach event listener for the dynamically created button
+    const addToCartButton = el.querySelector('.add-to-cart-btn');
+    if (addToCartButton) {
+        // The addToCart function itself will handle the login check and alert
+        addToCartButton.addEventListener('click', (event) => {
+            event.preventDefault(); // Prevent default link behavior if button is inside a link
+            addToCart(book.id);
+        });
+    }
     container.appendChild(el);
   });
 }
+
+// REMOVED: updateAddToCartButtonStateForAllBooks() - Not needed if buttons are always visible/enabled
 
 document.addEventListener('DOMContentLoaded', function() {
   updateNav();
@@ -241,8 +293,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
   loadFeaturedBooks();
   loadComingSoonBooks();
-  document.getElementById('searchBar')?.addEventListener('input', searchBooks);
-  document.getElementById('genreFilter')?.addEventListener('change', searchBooks);
+
+  let searchTimeout;
+  document.getElementById('searchBar')?.addEventListener('input', () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(searchBooks, 300);
+  });
+  document.getElementById('genreFilter')?.addEventListener('change', () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(searchBooks, 0);
+  });
 
   document.querySelector('.modal .close')?.addEventListener('click', function() {
     document.getElementById('apiErrorModal').style.display = 'none';

@@ -17,6 +17,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/payments', require('./routes/payments'));
 app.use('/api/admin/books', require('./routes/admin_books'));
 app.use('/api/admin/users', require('./routes/admin_users'));
+app.use('/api/admin/promotions', require('./routes/admin_promotions'));
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
