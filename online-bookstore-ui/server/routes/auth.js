@@ -13,34 +13,31 @@ let transporter;
     secure: test.smtp.secure,
     auth: { user: test.user, pass: test.pass }
   });
-});
+})();
 
 router.post('/register', async (req, res) => {
   try {
     const {
       name, email, password,
       street, city, state, zip,
-      card_number, card_exp, card_cvv,
+      stripe_customer_id, default_stripe_payment_method_id,
       promotion_opt_in
     } = req.body;
 
     const passwordHash   = await bcrypt.hash(password, 10);
-    const cardHash       = await bcrypt.hash(card_number, 10);
-    const cvvHash        = await bcrypt.hash(card_cvv, 10);
     const confirmToken   = crypto.randomBytes(20).toString('hex');
-
     const sql = `
       INSERT INTO users (
         name, email, password,
         street, city, state, zip,
-        card_number, card_exp, card_cvv,
+        stripe_customer_id, default_stripe_payment_method_id,
         promotion_opt_in, confirmation_token
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     const params = [
       name, email, passwordHash,
       street, city, state, zip,
-      cardHash, card_exp, cvvHash,
+      stripe_customer_id, default_stripe_payment_method_id,
       promotion_opt_in, confirmToken
     ];
 
@@ -165,7 +162,7 @@ router.get('/profile', (req, res) => {
   const sql = `
     SELECT id, name, email,
            street, city, state, zip,
-           card_number, card_exp, card_cvv,
+           stripe_customer_id, default_stripe_payment_method_id,
            promotion_opt_in, status, is_admin
       FROM users
      WHERE id = ?
@@ -176,8 +173,6 @@ router.get('/profile', (req, res) => {
       return res.status(500).json({ error: 'Could not fetch profile' });
     }
     if (!user) return res.status(404).json({ error: 'User not found' });
-    delete user.card_cvv;
-    delete user.card_number;
     res.json({ user });
   });
 });
@@ -189,7 +184,7 @@ router.put('/profile', async (req, res) => {
       name,
       password,
       street, city, state, zip,
-      card_number, card_exp, card_cvv,
+      stripe_customer_id, default_stripe_payment_method_id,
       promotion_opt_in
     } = req.body;
 
@@ -209,12 +204,7 @@ router.put('/profile', async (req, res) => {
       updates.push('street = ?', 'city = ?', 'state = ?', 'zip = ?');
       params.push(street, city, state, zip);
     }
-    if (card_number) {
-      const numHash = await bcrypt.hash(card_number, 10);
-      const cvvHash = await bcrypt.hash(card_cvv, 10);
-      updates.push('card_number = ?', 'card_exp = ?', 'card_cvv = ?');
-      params.push(numHash, card_exp, cvvHash);
-    }
+
     updates.push('promotion_opt_in = ?');
     params.push(promotion_opt_in ? 1 : 0);
 

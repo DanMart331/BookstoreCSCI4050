@@ -74,13 +74,7 @@ form.addEventListener('submit', async e => {
   if (oldPassword.value && newPassword.value) {
     payload.password = newPassword.value;
   }
-
-  if (cardNumber.value.includes(' ') && cardExp.value && cardCvv.value) {
-    payload.card_number = cardNumber.value.replace(/\s+/g,'');
-    payload.card_exp    = cardExp.value;
-    payload.card_cvv    = cardCvv.value;
-  }
-
+  
   const res = await fetch('/api/auth/profile', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },

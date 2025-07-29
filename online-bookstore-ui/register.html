@@ -30,16 +30,22 @@
     <input name="email" type="email" placeholder="Email" required>
     <input name="password" type="password" placeholder="Password" required>
 
-    <h3>Address</h3>
+    <h3>Address (Optional)</h3>
     <input name="street" placeholder="Street" >
     <input name="city"   placeholder="City"   >
     <input name="state"  placeholder="State" >
     <input name="zip"    placeholder="ZIP"   >
 
-    <h3>Payment Info</h3>
-    <input name="card_number" placeholder="Card Number">
-    <input name="card_exp"    placeholder="MM/YY"      >
-    <input name="card_cvv"    placeholder="CVV"        >
+    <h3>Payment Info (Optional)</h3>
+    <div id="card-element" style="border: 1px solid #ccc; padding: 10px; border-radius: 4px;">
+      </div>
+    <div id="card-errors" role="alert" style="color: red; margin-top: 10px;"></div>
+    <div class="form-group">
+      <label>
+        <input type="checkbox" id="saveCardCheckbox">
+        Save this card for future purchases
+      </label>
+    </div>       
 
     <div class="form-group">
       <label>
@@ -52,7 +58,22 @@
   </form>
 
   <script src="js/apiService.js"></script>
+  <script src="https://js.stripe.com/v3/"></script>
   <script>
+    const stripe = Stripe(API_CONFIG.STRIPE.PUBLIC_KEY); // Make sure API_CONFIG is available here
+    const elements = stripe.elements();
+    const cardElement = elements.create('card');
+    cardElement.mount('#card-element');
+
+    cardElement.addEventListener('change', function(event) {
+    const displayError = document.getElementById('card-errors');
+    if (event.error) {
+        displayError.textContent = event.error.message;
+    } else {
+        displayError.textContent = '';
+    }
+    });
+
     document.getElementById('registerForm').addEventListener('submit', async e => {
       e.preventDefault();
       const form = e.target;
@@ -64,12 +85,59 @@
         city:            form.city.value,
         state:           form.state.value,
         zip:             form.zip.value,
-        card_number:     form.card_number.value,
-        card_exp:        form.card_exp.value,
-        card_cvv:        form.card_cvv.value,
         promotion_opt_in: form.promotion_opt_in.checked ? 1 : 0
       };
+      
+      const saveCardCheckbox = document.getElementById('saveCardCheckbox');
+      let stripePaymentMethodId = null;
+      let cardErrors = false;
 
+      if (saveCardCheckbox && saveCardCheckbox.checked) {
+          // Only create payment method if user opted to save card
+          try {
+              // Collect billing details if you have them, or prompt user
+              const billingDetails = {
+                  name: form.name.value, // Or a separate field for cardholder name
+                  email: form.email.value,
+                  address: {
+                      line1: form.street.value,
+                      city: form.city.value,
+                      state: form.state.value,
+                      postal_code: form.zip.value,
+                  }
+              };
+
+              const { paymentMethod, error } = await stripe.createPaymentMethod({
+                  type: 'card',
+                  card: cardElement,
+                  billing_details: billingDetails,
+              });
+
+              if (error) {
+                  document.getElementById('card-errors').textContent = error.message;
+                  cardErrors = true;
+                  // Re-enable button if you disabled it
+                  console.log(cardErrors);
+                  return; // Stop form submission
+              }
+              stripePaymentMethodId = paymentMethod.id;
+          } catch (err) {
+              console.error("Error creating payment method:", err);
+              document.getElementById('card-errors').textContent = 'Error processing card information. Please try again.';
+              cardErrors = true;
+              return; // Stop form submission
+          }
+      }
+
+      if (cardErrors) {
+          return; // Don't proceed if there were card errors
+      }
+
+      // Add the Stripe Payment Method ID to your registration data if it exists
+      if (stripePaymentMethodId) {
+          data.stripe_payment_method_id = stripePaymentMethodId;
+      }
+      
       try {
         await ApiService.register(data);
         alert('Registration Successful! Please Check Your Email To Confirm Your Account.');
@@ -79,6 +147,8 @@
         console.error(err);
       }
     });
+
+
   </script>
 </body>
 </html>
