@@ -13,7 +13,7 @@ let transporter;
     secure: test.smtp.secure,
     auth: { user: test.user, pass: test.pass }
   });
-})();
+});
 
 router.post('/register', async (req, res) => {
   try {

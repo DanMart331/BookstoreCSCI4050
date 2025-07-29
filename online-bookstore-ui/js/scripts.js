@@ -20,8 +20,8 @@ function showError(container, message) {
   container.innerHTML = `<div class="error">${message}</div>`;
 }
 
-function showToast(message, isError = false) {
-  console.log('showToast:', message, isError);
+function alert(message, isError = false) {
+  console.log('alert:', message, isError);
   const toast = document.createElement('div');
   toast.className = `toast ${isError ? 'error' : ''}`;
   toast.textContent = message;
@@ -33,6 +33,7 @@ function updateApiStatus(message, isError = false) {
   const el = document.getElementById('apiStatus');
   if (!el) return;
   el.textContent = message;
+  el.style.display = 'none';
   el.className = isError ? 'error' : '';
 }
 
@@ -101,7 +102,7 @@ async function handleLogin(e) {
       window.location.href = 'index.html';
     }
   } catch (err) {
-    showToast(err.message, true);
+    alert(err.message, true);
   }
 }
 
@@ -125,7 +126,7 @@ async function handleAdminLogin(e) {
     updateNav();
     window.location.href = 'admin.html';
   } catch (err) {
-    showToast(err.message, true);
+    alert(err.message, true);
   }
 }
 
@@ -162,10 +163,10 @@ async function addToCart(id) {
     else cart.push({ id: book.id, title: book.title, price: book.price, image: book.image, quantity: 1 });
     localStorage.setItem('cart', JSON.stringify(cart));
     updateCartCount();
-    showToast(`${book.title} added to cart`);
+    alert(`${book.title} added to cart`);
   } catch (err) {
     console.error('Failed to add to cart:', err);
-    showToast('Failed to add to cart', true);
+    alert('Failed to add to cart', true);
   }
 }
 

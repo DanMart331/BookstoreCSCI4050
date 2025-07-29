@@ -383,7 +383,6 @@ button:hover, .button:hover {
   color: #2b6cb0;
 }
 
-@media (max-width: 768px) {
   .navbar {
     flex-direction: column;
     gap: 15px;
@@ -503,8 +502,6 @@ button:hover, .button:hover {
   color: #e53e3e;
   display: none;
   margin-top: 10px;
-}
-
 }
 
 .data-table {

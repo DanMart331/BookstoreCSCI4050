@@ -43,7 +43,6 @@ async function loadPromotions() {
                 <td>${formattedEndDate}</td>
                 <td>${promo.is_active ? '✔' : ''}</td>
                 <td>
-                    <button class="edit-promotion-btn" data-id="${promo.id}">Edit</button>
                     <button class="delete-promotion-btn" data-id="${promo.id}">Delete</button>
                 </td>
             `;
@@ -54,7 +53,7 @@ async function loadPromotions() {
     } catch (err) {
         console.error('Error loading promotions:', err);
         promotionsTableBody.innerHTML = `<tr><td colspan="7">Failed to load promotions.</td></tr>`;
-        showToast('Failed to load promotions.', true);
+        alert('Failed to load promotions.', true);
     }
 }
 
@@ -63,24 +62,8 @@ async function loadPromotions() {
 function openModal(promotion = null) {
     promotionForm.reset(); // Clear form fields
     promotionIdInput.value = ''; // Clear hidden ID
-
-    if (promotion) {
-        // Edit mode: Populate form with existing data
-        modalTitle.textContent = 'Edit Promotion';
-        promotionIdInput.value = promotion.id;
-        codeInput.value = promotion.code;
-        discountInput.value = promotion.discount_percentage;
-
-        // Date inputs expect 'YYYY-MM-DD' format
-        startDateInput.value = promo.start_date; // Assuming backend sends 'YYYY-MM-DD'
-        endDateInput.value = promo.end_date;     // Assuming backend sends 'YYYY-MM-DD'
-
-        activeInput.checked = promotion.is_active;
-    } else {
-        // New promotion mode
-        modalTitle.textContent = 'Add New Promotion';
-    }
-    promotionModal.style.display = 'block'; // Show the modal
+    modalTitle.textContent = 'Add New Promotion';
+    promotionModal.style.display = 'flex'; // Show the modal
 }
 
 function closeModal() {
@@ -104,32 +87,13 @@ async function handlePromotionFormSubmit(e) {
     };
 
     try {
-        if (id) {
-            // Edit existing promotion
-            await ApiService.updatePromotion(id, promotionData);
-            Alert('Promotion updated successfully!');
-        } else {
-            // Add new promotion
-            await ApiService.createPromotion(promotionData);
-            Alert('Promotion added successfully!');
-        }
+        await ApiService.createPromotion(promotionData);
+        alert('Promotion added successfully!');
         closeModal();
         loadPromotions(); // Reload the table to show changes
     } catch (err) {
         console.error('Error saving promotion:', err);
-        showToast(err.message || 'Failed to save promotion.', true);
-    }
-}
-
-async function handleEditButtonClick(id) {
-    try {
-        // Fetch specific promotion details to populate modal (optional, can use row data)
-        // For robust editing, fetching from API ensures latest data
-        const promotion = await ApiService.getPromotionById(id); // You'll need this ApiService method
-        openModal(promotion);
-    } catch (err) {
-        console.error('Error fetching promotion for edit:', err);
-        showToast('Failed to load promotion details for editing.', true);
+        alert(err.message || 'Failed to save promotion.', true);
     }
 }
 
@@ -137,11 +101,11 @@ async function handleDeleteButtonClick(id) {
     if (confirm('Are you sure you want to delete this promotion? This action cannot be undone.')) {
         try {
             await ApiService.deletePromotion(id);
-            showToast('Promotion deleted successfully!');
+            alert('Promotion deleted successfully!');
             loadPromotions(); // Reload the table
         } catch (err) {
             console.error('Error deleting promotion:', err);
-            showToast(err.message || 'Failed to delete promotion.', true);
+            alert(err.message || 'Failed to delete promotion.', true);
         }
     }
 }
@@ -149,10 +113,6 @@ async function handleDeleteButtonClick(id) {
 // --- Event Listener Attachments ---
 
 function addEventListenersToPromotionButtons() {
-    // Edit buttons
-    promotionsTableBody.querySelectorAll('.edit-promotion-btn').forEach(button => {
-        button.addEventListener('click', () => handleEditButtonClick(button.dataset.id));
-    });
 
     // Delete buttons
     promotionsTableBody.querySelectorAll('.delete-promotion-btn').forEach(button => {
