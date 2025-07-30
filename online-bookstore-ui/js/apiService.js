@@ -17,6 +17,31 @@ const API_CONFIG = {
 };
 
 class ApiService {
+  static async request(url, method = 'GET', data = null) {
+        const options = {
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        };
+        if (data) {
+            options.body = JSON.stringify(data);
+        }
+
+        try {
+            const response = await fetch(url, options);
+            if (!response.ok) {
+                // Attempt to parse error message from server response
+                const errorData = await response.json().catch(() => ({ error: 'Unknown server error' }));
+                throw new Error(errorData.error || 'Something went wrong with the server response.');
+            }
+            return response.json();
+        } catch (networkError) {
+            console.error('Network or Fetch API Error:', networkError);
+            throw new Error(`Network error: ${networkError.message || 'Could not connect to server.'}`);
+        }
+    }
+
   // --- Bookstore API Methods ---
   static async getFeaturedBooks() {
     const res = await fetch(`${API_CONFIG.BOOKSTORE.BASE_URL}/featured`);
@@ -148,7 +173,9 @@ class ApiService {
     return payload;
   }
 
-
+  static async createPaymentIntent(amount, userId) {
+        return ApiService.request('/api/payments/create-intent', 'POST', { amount, userId }); // FIX: Use ApiService.request
+    }
 }
 
 window.API_CONFIG = API_CONFIG;

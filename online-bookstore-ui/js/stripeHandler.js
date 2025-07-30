@@ -6,7 +6,7 @@ async function initializeStripe() {
   const cardElement = elements.create('card');
   cardElement.mount('#card-element');
 
-  const paymentForm = document.getElementById('payment-form');
+  const paymentForm = document.getElementById('checkoutForm');
   if (paymentForm) {
     paymentForm.addEventListener('submit', async (e) => {
       e.preventDefault();

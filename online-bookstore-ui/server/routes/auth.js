@@ -7,7 +7,7 @@ const util = require('util');
 const dbGet = util.promisify(db.get).bind(db);
 const dbRun = util.promisify(db.run).bind(db);
 const router = express.Router();
-const stripe = require('stripe')();
+const stripe = require('stripe')('sk_test_51RqNndJcKtieGzIV7fCHyknNkBN52SqNag5zHDrRvaeoYlKqZYu5LOpPTgzDgoPZStfY1OjGqGJluLG7kFUqgXfO00eW4FDTQW');
 
 let transporter;
 (async () => {

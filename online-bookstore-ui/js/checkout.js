@@ -139,74 +139,97 @@ document.addEventListener('DOMContentLoaded', async () => {
         const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
         const tax = subtotal * 0.07;
         const total = subtotal + tax;
+        const submitButton = document.getElementById('checkoutForm').querySelector('button[type="submit"]');
 
-        const currentUser = JSON.parse(localStorage.getItem('user'));
+        const currentUser = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user'));
         if (!currentUser || !currentUser.id) {
             alert('User not logged in or ID missing.');
+            submitButton.disabled = false;
+            submitButton.textContent = 'Place Order';
             return;
         }
 
-        let paymentMethodIdForOrder = null;
-        try {
-                const updatedUserRes = await fetch(`/api/auth/profile?id=${currentUser.id}`);
-                const { user: latestUser } = await updatedUserRes.json();
-                if (latestUser && latestUser.defaultPaymentMethod) {
-                    paymentMethodIdForOrder = latestUser.defaultPaymentMethod.id;
-                } else {
-                    alert('No default payment method found. Please add a card.');
-                    return;
-                }
-        } catch (profileFetchError) {
-            console.error("Error fetching latest payment method for order:", profileFetchError);
-            alert('Failed to retrieve payment information. Please try again.');
+        const selectedPaymentMethodRadio = document.querySelector('input[name="paymentMethod"]:checked');
+
+        if (!selectedPaymentMethodRadio) {
+            alert('Please select a payment method.');
+            submitButton.disabled = false;
+            submitButton.textContent = 'Place Order';
             return;
         }
-
-        const order = {
-            userId: currentUser.id,
-            cart: cart,
-            subtotal: subtotal.toFixed(2),
-            tax: tax.toFixed(2),
-            total: total.toFixed(2),
-            shipping: {
-                name: e.target.shippingName.value,
-                street: e.target.shippingStreet.value,
-                city: e.target.shippingCity.value,
-                state: e.target.shippingState.value,
-                zip: e.target.shippingZip.value
-            },
-            payment: {
-                stripePaymentMethodId: paymentMethodIdForOrder,
-                display: document.getElementById('selectedPaymentMethodDisplay').textContent
-            },
-            date: new Date().toLocaleString()
-        };
+        const paymentMethodIdForOrder = selectedPaymentMethodRadio.value;
+        const selectedPaymentMethodDisplay = selectedPaymentMethodRadio.nextElementSibling.textContent.trim();
 
         try {
-            const placeOrderRes = await fetch('/api/orders/place', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(order)
+            const { clientSecret } = await ApiService.createPaymentIntent(Math.round(total * 100), currentUser.id);
+
+            if (!clientSecret) {
+                throw new Error('Failed to get client secret for payment.');
+            }
+
+            const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+                payment_method: paymentMethodIdForOrder, 
             });
 
-            const placeOrderResult = await placeOrderRes.json();
+            if (stripeError) {
+                console.error('Stripe Payment Confirmation Error:', stripeError);
+                alert('Payment failed: ' + (stripeError.message || 'Unknown payment error.'));
+            }
 
-            if (placeOrderResult.success) {
-                localStorage.setItem('lastOrder', JSON.stringify(order));
+            if (paymentIntent.status === 'succeeded') {
+                console.log('Payment successful:', paymentIntent);
 
-                const history = JSON.parse(localStorage.getItem('orderHistory')) || [];
-                history.push(order);
-                localStorage.setItem('orderHistory', JSON.stringify(history));
-                localStorage.removeItem('cart');
+                const order = {
+                    userId: currentUser.id,
+                    cart: cart,
+                    subtotal: subtotal.toFixed(2),
+                    tax: tax.toFixed(2),
+                    total: total.toFixed(2),
+                    shipping: {
+                        name: e.target.shippingName.value,
+                        street: e.target.shippingStreet.value,
+                        city: e.target.shippingCity.value,
+                        state: e.target.shippingState.value,
+                        zip: e.target.shippingZip.value
+                    },
+                    payment: {
+                        stripePaymentIntentId: paymentIntent.id, // Send the Payment Intent ID
+                        display: selectedPaymentMethodDisplay
+                    },
+                    date: new Date().toLocaleString()
+                };
 
-                alert('Order placed successfully!');
-                window.location.href = 'order_summary.html';
+                const placeOrderRes = await fetch('/api/orders/place', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(order)
+                });
+
+                const placeOrderResult = await placeOrderRes.json();
+
+                if (placeOrderResult.success) {
+                    localStorage.setItem('lastOrder', JSON.stringify(order));
+
+                    const history = JSON.parse(localStorage.getItem('orderHistory')) || [];
+                    history.push(order);
+                    localStorage.setItem('orderHistory', JSON.stringify(history));
+                    localStorage.removeItem('cart');
+
+                    alert('Order placed successfully!');
+                    window.location.href = 'order_summary.html';
+                } else {
+                    alert('Order failed: ' + (placeOrderResult.error || 'Unknown error.'));
+                }
             } else {
-                alert('Order failed: ' + (placeOrderResult.error || 'Unknown error.'));
+                // Handle other paymentIntent statuses (e.g., requires_action) if necessary
+                alert('Payment not completed. Status: ' + paymentIntent.status);
             }
         } catch (orderError) {
-            console.error('Error placing order:', orderError);
-            alert('An error occurred while placing your order. Please try again.');
+            console.error('Error placing order or confirming payment:', orderError);
+            alert('An error occurred while processing your order. Please try again.');
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Place Order';
         }
     });
 });

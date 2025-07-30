@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
+const paymentsRouter = require('./routes/payments');
+const ordersRouter = require('./routes/orders'); 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -16,6 +18,8 @@ app.use('/api/payments', require('./routes/payments'));
 app.use('/api/admin/books', require('./routes/admin_books'));
 app.use('/api/admin/users', require('./routes/admin_users'));
 app.use('/api/admin/promotions', require('./routes/admin_promotions'));
+app.use('/api/payments', paymentsRouter); 
+app.use('/api/orders', ordersRouter); 
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

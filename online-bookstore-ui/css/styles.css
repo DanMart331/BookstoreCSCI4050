@@ -20,6 +20,7 @@ body {
 h1, h2, h3, h4 {
   color: #2a4365;
   margin-bottom: 15px;
+  
 }
 
 h1 {
@@ -669,4 +670,100 @@ button:hover, .button:hover {
     color: #6b7280;
     font-size: 1.125rem;
     margin-top: 2rem;
+}
+
+
+/* Styles for the main order details section */
+.order-summary-details {
+    margin-bottom: 30px;
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+}
+
+.order-summary-details h3,
+.order-summary-details h4 {
+    color: #555;
+    margin-top: 15px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+
+.order-summary-details p {
+    margin-bottom: 5px;
+    line-height: 1.5;
+}
+
+/* Styles for the ordered items table */
+.order-items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.order-items-table th,
+.order-items-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+    vertical-align: middle; /* Align content vertically in the middle */
+}
+
+.order-items-table th {
+    background-color: #f2f2f2;
+    color: #333;
+    font-weight: bold;
+}
+
+.order-items-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.order-items-table tr:hover {
+    background-color: #f1f1f1;
+}
+
+.order-items-table img {
+    display: block; /* Remove extra space below image */
+    margin: 0 auto; /* Center image in its cell */
+}
+
+/* Styles for the summary totals section (subtotal, tax, total) */
+.summary-totals {
+    border-top: 2px solid #eee;
+    padding-top: 15px;
+    margin-top: 20px;
+    text-align: right; /* Align totals to the right */
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 1.1em;
+    margin-left: 20px;
+    margin-right: 20px;
+    
+}
+
+.summary-row.total {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #28a745; /* Green for total */
+    border-top: 1px solid #ddd;
+    padding-top: 10px;
+    margin-top: 10px;
+    
+}
+
+/* Confirmation message */
+p#totalDisplay + p { /* Selects the paragraph directly after totalDisplay */
+    font-weight: bold;
+    color: #28a745; /* Green color for confirmation */
+    margin-top: 20px;
+    font-size: 1.1em;
+    
 }
