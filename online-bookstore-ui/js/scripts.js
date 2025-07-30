@@ -53,6 +53,7 @@ function updateNav() {
   const adminDashboardLink = document.getElementById('adminDashboardLink');
   const logoutLink = document.getElementById('logoutLink');
   const profileLink = document.getElementById('profileLink');
+  const orderHistoryLink = document.getElementById('orderHistoryLink');
 
   if (user) {
     loginLink.style.display = 'none';
@@ -60,6 +61,7 @@ function updateNav() {
     adminLoginLink.style.display = 'none';
     logoutLink.style.display = 'inline';
     profileLink.style.display = 'inline';
+    orderHistoryLink.style.display = 'inline';
     if (adminDashboardLink) {
       adminDashboardLink.style.display = user.is_admin ? 'inline' : 'none';
     }

@@ -556,3 +556,117 @@ button:hover, .button:hover {
     font-size: 0.85rem;
   }
 }
+
+
+/* Styling for individual order cards */
+.order-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 1rem; /* Rounded corners */
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5rem;
+    background-color: #ffffff;
+}
+
+/* Header section of each order card */
+.order-header {
+    background-color: #f9fafb;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.order-header h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.order-header p {
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+/* Section for listing items within an order */
+.order-items {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* Styling for each individual item in an order */
+.order-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px dashed #e5e7eb;
+}
+
+.order-item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.order-item img {
+    width: 60px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+.order-item-info h4 {
+    font-weight: 500;
+    color: #1f2937;
+    margin-bottom: 0.25rem;
+}
+
+.order-item-info p {
+    font-size: 0.9rem;
+    color: #4b5563;
+}
+
+/* Styling for the total amount and reorder button */
+.order-total {
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.order-total p {
+    font-size: 1.125rem;
+}
+
+.order-total button {
+    background-color: #3b82f6; /* Blue for reorder button */
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.75rem; /* More rounded */
+    font-weight: 600;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.order-total button:hover {
+    background-color: #2563eb;
+    transform: translateY(-2px);
+}
+
+/* Message displayed when there are no past orders */
+.no-orders-message {
+    text-align: center;
+    padding: 2rem;
+    background-color: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    color: #6b7280;
+    font-size: 1.125rem;
+    margin-top: 2rem;
+}

@@ -4,26 +4,32 @@
   <meta charset="UTF-8">
   <title>Checkout</title>
   <link rel="stylesheet" href="css/styles.css">
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    referrerpolicy="no-referrer"
+  />
 </head>
 <body>
   <nav class="navbar">
     <h1><a href="index.html">Online Bookstore</a></h1>
 
     <div class="icons">
-      <a href="cart.html" id="cartLink">
-        <i class="fas fa-shopping-cart"></i>
-        Cart (<span id="cartCount">0</span>)
-      </a>
-      <a href="login.html" id="loginLink">Login</a>
-      <a href="#" id="logoutLink" style="display:none;">Logout</a>
-      <a href="register.html" id="registerLink">Register</a>
-      <a href="edit_profile.html" id="profileLink" style="display:none;">Profile</a>
-      <a href="admin_login.html" id="adminLoginLink">Admin Login</a>
-      <a href="admin.html" id="adminDashboardLink" style="display:none;">
-        <i class="fas fa-user-shield"></i> Dashboard
-      </a>
+        <a href="cart.html" id="cartLink">
+            <i class="fas fa-shopping-cart"></i>
+            Cart (<span id="cartCount">0</span>)
+        </a>
+        <a href="login.html" id="loginLink">Login</a>
+        <a href="#" id="logoutLink" style="display:none;">Logout</a>
+        <a href="register.html" id="registerLink">Register</a>
+        <a href="edit_profile.html" id="profileLink" style="display:none;">Profile</a>
+        <a href="order_history.html" id="orderHistoryLink" style="display:none;">Order History</a> <!-- New: Order History link -->
+        <a href="admin_login.html" id="adminLoginLink">Admin Login</a>
+        <a href="admin.html" id="adminDashboardLink" style="display:none;">
+            <i class="fas fa-user-shield"></i> Dashboard
+        </a>
     </div>
-  </nav>
+</nav>
 
   <div class="container">
     <form id="checkoutForm">
@@ -56,21 +62,23 @@
       </div>
 
       <div class="form-section">
-        <h3>Payment Information</h3>
-        <div class="form-group">
-          <label for="cardNumber">Card Number</label>
-          <input type="text" id="cardNumber" name="cardNumber" required>
+        <h2>Payment Information</h2>
+        <div id="paymentMethodsDisplay">
+          <p>Loading payment methods...</p>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="cardExp">Expiration Date</label>
-            <input type="text" id="cardExp" name="cardExp" placeholder="MM/YY" required>
-          </div>
-          <div class="form-group">
-            <label for="cardCvv">CVV</label>
-            <input type="text" id="cardCvv" name="cardCvv" required>
-          </div>
+
+        <button type="button" id="addNewPaymentMethodBtn" class="button secondary-button">Add New Payment Method</button>
+
+        <div id="newPaymentMethodForm" style="display: none; margin-top: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 5px;">
+        <h3>Add New Card</h3>
+        <div id="card-element" class="stripe-card-element">
         </div>
+        <div id="card-errors" role="alert" style="color: red; margin-top: 10px;"></div>
+          <label>
+             <input type="checkbox" id="setDefaultCard" checked> Set as default payment method
+          </label>
+          <button type="button" id="saveNewCardBtn" class="button">Save New Card</button>
+         </div>
       </div>
 
       <div class="form-section">
@@ -81,9 +89,10 @@
       <button type="submit" class="submit-btn">Place Order</button>
     </form>
   </div>
-
   
+  <script src="js/apiService.js"></script>
   <script src="js/scripts.js"></script>
+  <script src="https://js.stripe.com/v3/"></script>
   <script src="js/checkout.js"></script>
 </body>
 </html>

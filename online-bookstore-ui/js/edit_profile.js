@@ -6,7 +6,6 @@ const logoutLink = document.getElementById('logoutLink');
 const flds = [
   'name','oldPassword','newPassword',
   'street','city','state','zip',
-  'cardNumber','cardExp','cardCvv',
   'promoOpt'
 ];
 
@@ -49,9 +48,6 @@ async function loadProfile() {
   document.getElementById('city').value       = u.city || '';
   document.getElementById('state').value      = u.state || '';
   document.getElementById('zip').value        = u.zip || '';
-  document.getElementById('cardNumber').value = '•••• •••• •••• ' + (u.card_number?.slice(-4) || '');
-  document.getElementById('cardExp').value    = u.card_exp || '';
-  document.getElementById('cardCvv').value    = '';
   document.getElementById('promoOpt').checked = !!u.promotion_opt_in;
 
   setEditable(false);

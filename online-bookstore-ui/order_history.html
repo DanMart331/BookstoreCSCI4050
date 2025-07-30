@@ -4,31 +4,81 @@
   <meta charset="UTF-8">
   <title>Order History</title>
   <link rel="stylesheet" href="css/styles.css">
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    referrerpolicy="no-referrer"
+  />
 </head>
 <body>
   <nav class="navbar">
     <h1><a href="index.html">Online Bookstore</a></h1>
 
     <div class="icons">
-      <a href="cart.html" id="cartLink">
-        <i class="fas fa-shopping-cart"></i>
-        Cart (<span id="cartCount">0</span>)
-      </a>
-      <a href="login.html" id="loginLink">Login</a>
-      <a href="#" id="logoutLink" style="display:none;">Logout</a>
-      <a href="register.html" id="registerLink">Register</a>
-      <a href="edit_profile.html" id="profileLink" style="display:none;">Profile</a>
-      <a href="admin_login.html" id="adminLoginLink">Admin Login</a>
-      <a href="admin.html" id="adminDashboardLink" style="display:none;">
-        <i class="fas fa-user-shield"></i> Dashboard
-      </a>
+        <a href="cart.html" id="cartLink">
+            <i class="fas fa-shopping-cart"></i>
+            Cart (<span id="cartCount">0</span>)
+        </a>
+        <a href="login.html" id="loginLink">Login</a>
+        <a href="#" id="logoutLink" style="display:none;">Logout</a>
+        <a href="register.html" id="registerLink">Register</a>
+        <a href="edit_profile.html" id="profileLink" style="display:none;">Profile</a>
+        <a href="order_history.html" id="orderHistoryLink" style="display:none;">Order History</a> <!-- New: Order History link -->
+        <a href="admin_login.html" id="adminLoginLink">Admin Login</a>
+        <a href="admin.html" id="adminDashboardLink" style="display:none;">
+            <i class="fas fa-user-shield"></i> Dashboard
+        </a>
     </div>
-  </nav>
+</nav>
 
-  <div class="container">
-    <h2>Your Order History</h2>
-    <div id="history" class="order-history"></div>
-  </div>
+  <div class="container bg-white shadow-lg rounded-xl p-8 mt-10 mb-10 w-full">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Your Order History</h2>
+        
+        <div id="orderHistoryContainer" class="order-history space-y-6">
+            <div class="order-card hidden" id="orderCardTemplate">
+                <div class="order-header">
+                    <h3 class="text-lg font-semibold text-gray-800">Order ID: <span class="order-id-display"></span></h3>
+                    <p class="text-sm text-gray-600">Date: <span class="order-date-display"></span></p>
+                </div>
+                <div class="p-4 border-b border-gray-200 bg-gray-50">
+                    <p class="text-sm text-gray-700"><strong class="font-medium">Customer ID:</strong> <span class="customer-id-display"></span></p>
+                    <p class="text-sm text-gray-700"><strong class="font-medium">Order Status:</strong> <span class="order-status-display font-semibold text-blue-600"></span></p>
+                </div>
+                <div class="order-items">
+                    <h4 class="text-md font-semibold text-gray-800 mb-2">Ordered Items:</h4>
+                    <div class="items-list">
+                        <div class="order-item">
+                            <img src="https://placehold.co/60x80/e0e0e0/555555?text=Book" alt="Book Title" class="w-16 h-20 object-cover rounded-md mr-4">
+                            <div class="order-item-info flex-grow">
+                                <h4 class="text-md font-medium text-gray-900">Sample Book Title</h4>
+                                <p class="text-sm text-gray-600">$19.99 &times; 1</p>
+                            </div>
+                            <span class="text-gray-800 font-semibold">$19.99</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 border-b border-gray-200">
+                    <h4 class="text-md font-semibold text-gray-800 mb-2">Shipping Address:</h4>
+                    <p class="text-sm text-gray-700 shipping-name-display"></p>
+                    <p class="text-sm text-gray-700 shipping-street-display"></p>
+                    <p class="text-sm text-gray-700 shipping-city-state-zip-display"></p>
+                </div>
+                <div class="p-4 border-b border-gray-200 bg-gray-50">
+                    <h4 class="text-md font-semibold text-gray-800 mb-2">Payment Method:</h4>
+                    <p class="text-sm text-gray-700 payment-method-display"></p>
+                </div>
+                <div class="order-total">
+                    <p>Total: <span class="font-bold text-lg text-green-700 order-total-display"></span></p>
+                    <button onclick="reorder(0)" class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition duration-300">Reorder</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="noOrderMessage" class="no-orders-message hidden">
+            <p>You have no past orders.</p>
+            <a href="index.html" class="inline-block mt-4 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition duration-300">Start Shopping Now!</a>
+        </div>
+    </div>
 
   
   <script src="js/scripts.js"></script>

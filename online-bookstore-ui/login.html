@@ -8,25 +8,15 @@
   <link
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    integrity="sha512-pQ6J6Q3LtqvV4olUlk4F3nXbVvOaK+5fQeL+XJmC4yj8s7VSTVYBfB2M0y9UoFU/2+vH0hZfu/2eQZw8lW+J1w=="
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"
+    
   />
 </head>
 <body>
   <nav class="navbar">
     <h1><a href="index.html">Online Bookstore</a></h1>
-    <input id="searchBar" type="text" placeholder="Search..." />
-    <select id="genreFilter">
-      <option value="">All Genres</option>
-      <option value="fiction">Fiction</option>
-      <option value="science fiction">Science Fiction</option>
-      <option value="fantasy">Fantasy</option>
-      <option value="mystery">Mystery</option>
-    </select>
 
     <div class="icons">
-      <a href="cart.html" id="cartLink">
+      <a href="cart.html" id="cartLink" style="display: none;">
         <i class="fas fa-shopping-cart"></i>
         Cart (<span id="cartCount">0</span>)
       </a>
@@ -34,6 +24,7 @@
       <a href="login.html" id="loginLink">Login</a>
       <a href="#" id="logoutLink" style="display:none;">Logout</a>
       <a href="edit_profile.html" id="profileLink" style="display:none;">Profile</a>
+      <a href="order_history.html" id="orderHistoryLink" style="display:none;">Order History</a>
       <a href="admin_login.html" id="adminLoginLink">Admin Login</a>
       <a href="admin.html" id="adminDashboardLink" style="display:none;">
         <i class="fas fa-user-shield"></i> Dashboard

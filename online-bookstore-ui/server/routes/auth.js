@@ -1,9 +1,13 @@
-const express    = require('express');
-const bcrypt     = require('bcrypt');
-const crypto     = require('crypto');
+const express = require('express');
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 const nodemailer = require('nodemailer');
-const db         = require('../db');
-const router     = express.Router();
+const db = require('../db');
+const util = require('util');
+const dbGet = util.promisify(db.get).bind(db);
+const dbRun = util.promisify(db.run).bind(db);
+const router = express.Router();
+const stripe = require('stripe')('sk_test_51RqNndJcKtieGzIV7fCHyknNkBN52SqNag5zHDrRvaeoYlKqZYu5LOpPTgzDgoPZStfY1OjGqGJluLG7kFUqgXfO00eW4FDTQW');
 
 let transporter;
 (async () => {
@@ -20,12 +24,37 @@ router.post('/register', async (req, res) => {
     const {
       name, email, password,
       street, city, state, zip,
-      stripe_customer_id, default_stripe_payment_method_id,
-      promotion_opt_in
+      promotion_opt_in,
+      paymentMethodId
     } = req.body;
 
-    const passwordHash   = await bcrypt.hash(password, 10);
-    const confirmToken   = crypto.randomBytes(20).toString('hex');
+    const passwordHash = await bcrypt.hash(password, 10);
+    const confirmToken = crypto.randomBytes(20).toString('hex');
+
+    let stripeCustomerId = null;
+    let defaultStripePaymentMethodId = null;
+
+    if (paymentMethodId) {
+      try {
+        const customer = await stripe.customers.create({
+          payment_method: paymentMethodId,
+          email: email,
+          name: name,
+          invoice_settings: {
+            default_payment_method: paymentMethodId,
+          },
+        });
+        stripeCustomerId = customer.id;
+        defaultStripePaymentMethodId = paymentMethodId;
+        console.log('Stripe Customer created:', stripeCustomerId);
+        console.log('Default Payment Method set:', defaultStripePaymentMethodId);
+      } catch (stripeError) {
+        console.error('Stripe Customer/Payment Method creation error during registration:', stripeError);
+        // Return an error to the client if Stripe fails to process the payment method
+        return res.status(500).json({ error: 'Registration failed: Could not process payment method. Please try again.' });
+      }
+    }
+
     const sql = `
       INSERT INTO users (
         name, email, password,
@@ -37,7 +66,8 @@ router.post('/register', async (req, res) => {
     const params = [
       name, email, passwordHash,
       street, city, state, zip,
-      stripe_customer_id, default_stripe_payment_method_id,
+      stripeCustomerId,
+      defaultStripePaymentMethodId,
       promotion_opt_in, confirmToken
     ];
 
@@ -71,7 +101,7 @@ router.post('/register', async (req, res) => {
 
 router.get('/confirm', (req, res) => {
   const token = req.query.token;
-  const sql   = `
+  const sql = `
     UPDATE users
       SET status = 'active', confirmation_token = NULL
     WHERE confirmation_token = ?
@@ -99,8 +129,8 @@ router.post('/login', async (req, res) => {
 
 router.post('/forgot-password', (req, res) => {
   const { email } = req.body;
-  const token     = crypto.randomBytes(20).toString('hex');
-  const expires   = Date.now() + 3600_000; // 1h
+  const token = crypto.randomBytes(20).toString('hex');
+  const expires = Date.now() + 3600_000;
 
   const sql = `
     UPDATE users
@@ -157,24 +187,89 @@ router.post('/reset-password', async (req, res) => {
   });
 });
 
-router.get('/profile', (req, res) => {
-  const id = req.query.id;
-  const sql = `
-    SELECT id, name, email,
-           street, city, state, zip,
-           stripe_customer_id, default_stripe_payment_method_id,
-           promotion_opt_in, status, is_admin
-      FROM users
-     WHERE id = ?
-  `;
-  db.get(sql, [id], (err, user) => {
-    if (err) {
-      console.error('DB Error [profile GET]:', err.message);
-      return res.status(500).json({ error: 'Could not fetch profile' });
-    }
-    if (!user) return res.status(404).json({ error: 'User not found' });
-    res.json({ user });
-  });
+router.get('/profile', async (req, res) => {
+  try {
+    const id = req.query.id;
+    console.log('Profile GET request received. ID from query:', id);
+
+    const sql = `
+      SELECT id, name, email,
+              street, city, state, zip,
+              stripe_customer_id, default_stripe_payment_method_id,
+              promotion_opt_in, status, is_admin
+          FROM users
+         WHERE id = ?
+    `;
+    db.get(sql, [id], async (err, user) => {
+      if (err) {
+        console.error('DB Error [profile GET]:', err.message);
+        return res.status(500).json({ error: 'Could not fetch profile' });
+      }
+      console.log('User data retrieved from DB (callback):', user);
+
+      if (!user) {
+        console.log('User not found for ID:', id);
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      let defaultPaymentMethod = null;
+      let allPaymentMethods = [];
+
+      if (user.stripe_customer_id) { // Check if customer ID exists
+        console.log('Attempting to retrieve Stripe payment methods for customer:', user.stripe_customer_id);
+        try {
+          // Fetch all card payment methods for the customer
+          const paymentMethods = await stripe.paymentMethods.list({
+            customer: user.stripe_customer_id,
+            type: 'card',
+          });
+          allPaymentMethods = paymentMethods.data.map(pm => ({
+            id: pm.id,
+            brand: pm.card.brand,
+            last4: pm.card.last4,
+            exp_month: pm.card.exp_month,
+            exp_year: pm.card.exp_year,
+          }));
+          console.log('Stripe payment methods retrieved successfully:', allPaymentMethods);
+
+          // Find and set the default payment method from the list
+          if (user.default_stripe_payment_method_id) {
+            defaultPaymentMethod = allPaymentMethods.find(
+              pm => pm.id === user.default_stripe_payment_method_id
+            );
+          }
+        } catch (stripeErr) {
+          console.error("Error retrieving payment methods from Stripe:", stripeErr);
+          // If Stripe fails, ensure these are null/empty, but don't block profile fetch
+          defaultPaymentMethod = null;
+          allPaymentMethods = [];
+        }
+      } else {
+        console.log('Stripe customer ID not found for user. Skipping Stripe API call for payment methods.');
+      }
+
+      const userToSend = {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        street: user.street,
+        city: user.city,
+        state: user.state,
+        zip: user.zip,
+        promotion_opt_in: user.promotion_opt_in,
+        status: user.status,
+        is_admin: user.is_admin,
+        defaultPaymentMethod: defaultPaymentMethod,
+        allPaymentMethods: allPaymentMethods 
+      };
+
+      res.json({ user: userToSend });
+    });
+
+  } catch (err) {
+    console.error('Error fetching user profile (outer catch):', err);
+    res.status(500).json({ error: 'Failed to fetch user profile' });
+  }
 });
 
 router.put('/profile', async (req, res) => {
@@ -214,8 +309,8 @@ router.put('/profile', async (req, res) => {
 
     const sql = `
       UPDATE users
-         SET ${updates.join(', ')}
-       WHERE id = ?
+          SET ${updates.join(', ')}
+        WHERE id = ?
     `;
     params.push(id);
 
@@ -253,6 +348,54 @@ router.put('/profile', async (req, res) => {
   } catch (err) {
     console.error('Server Error [profile PUT]:', err);
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/save-payment-method', async (req, res) => {
+  try {
+    const { userId, paymentMethodId, setDefault } = req.body;
+
+    const user = await dbGet('SELECT email, stripe_customer_id FROM users WHERE id = ?', [userId]);
+
+    let customerId;
+
+    if (!user || !user.stripe_customer_id) {
+      const customer = await stripe.customers.create({
+        payment_method: paymentMethodId,
+        email: user?.email || 'noemail@example.com',
+        invoice_settings: {
+          default_payment_method: paymentMethodId,
+        },
+      });
+
+      customerId = customer.id;
+
+      await dbRun(
+        'UPDATE users SET stripe_customer_id = ?, default_stripe_payment_method_id = ? WHERE id = ?',
+        [customerId, paymentMethodId, userId]
+      );
+    } else {
+      customerId = user.stripe_customer_id;
+
+      await stripe.paymentMethods.attach(paymentMethodId, { customer: customerId });
+
+      if (setDefault) {
+        await stripe.customers.update(customerId, {
+          invoice_settings: { default_payment_method: paymentMethodId },
+        });
+
+        await dbRun(
+          'UPDATE users SET default_stripe_payment_method_id = ? WHERE id = ?',
+          [paymentMethodId, userId]
+        );
+      }
+    }
+
+    res.json({ success: true, message: 'Payment method saved.' });
+
+  } catch (error) {
+    console.error('Error saving payment method:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 
