@@ -4,7 +4,6 @@ const API_CONFIG = {
   },
   STRIPE: {
     PUBLIC_KEY: 'pk_test_51RqNndJcKtieGzIVZDjvxPVZCiNony1XRoYvELfj17JaBpWtG6dB1aE5ZIjciOrOPluEoW8xMJKIJFIe89k78hpG000JecNtqp',
-    PRIVATE_KEY: 'sk_test_51RqNndJcKtieGzIV7fCHyknNkBN52SqNag5zHDrRvaeoYlKqZYu5LOpPTgzDgoPZStfY1OjGqGJluLG7kFUqgXfO00eW4FDTQW'
   },
   AUTH: { // Added for consistency, though '/api/auth' is hardcoded in register
     BASE_URL: '/api/auth'
