@@ -13,7 +13,6 @@ function showOrderSummary() {
     const totalDisplay = document.getElementById('totalDisplay');
 
     const lastOrder = JSON.parse(localStorage.getItem('lastOrder'));
-
     if (!lastOrder) {
         orderDetailsContainer.innerHTML = '<p>No order found. Please place an order first.</p>';
         totalDisplay.textContent = '';
@@ -21,7 +20,7 @@ function showOrderSummary() {
     }
 
     let orderHtml = `
-        <h3>Order ID: ${lastOrder.orderId || 'N/A'}</h3>
+        <h3>Order ID: ${lastOrder.cart[0].id || 'N/A'}</h3>
         <p><strong>Confirmation Number:</strong> ${lastOrder.payment.stripePaymentIntentId}</p>
         <p><strong>Order Date:</strong> ${lastOrder.date}</p>
         
@@ -33,11 +32,16 @@ function showOrderSummary() {
         <h4>Payment Method:</h4>
         <p><i class="fas fa-credit-card" style="margin-right: 5px;"></i> ${lastOrder.payment.display}</p>
 
+        ${lastOrder.promo_code_applied ? `
+        <h4>Promotion Applied:</h4>
+        <p>Code: ${lastOrder.promo_code_applied} (Discount: -$${parseFloat(lastOrder.discount_amount).toFixed(2)})</p>
+        ` : ''}
+
         <h4>Items Ordered:</h4>
         <table class="order-items-table">
             <thead>
                 <tr>
-                    <th></th> <!-- For image -->
+                    <th></th>
                     <th>Book Title</th>
                     <th>Price</th>
                     <th>Quantity</th>
@@ -73,15 +77,20 @@ function showOrderSummary() {
         <div class="summary-totals">
             <div class="summary-row">
                 <span>Subtotal:</span>
-                <span>$${lastOrder.subtotal}</span>
+                <span>$${parseFloat(lastOrder.subtotal).toFixed(2)}</span>
             </div>
+            ${lastOrder.promo_code_applied ? `
+            <div class="summary-row discount">
+                <span>Discount:</span>
+                <span>-$${parseFloat(lastOrder.discount_amount).toFixed(2)}</span>
+            </div>` : ''}
             <div class="summary-row">
                 <span>Tax:</span>
-                <span>$${lastOrder.tax}</span>
+                <span>$${parseFloat(lastOrder.tax).toFixed(2)}</span>
             </div>
             <div class="summary-row total">
                 <span>Total Paid:</span>
-                <span>$${lastOrder.total}</span>
+                <span>$${parseFloat(lastOrder.total).toFixed(2)}</span>
             </div>
         </div>
     `;

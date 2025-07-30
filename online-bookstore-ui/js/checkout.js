@@ -19,6 +19,9 @@ const cardStyle = {
 
 const cardElement = elements.create('card', { style: cardStyle });
 
+let appliedPromotion = null;
+let currentCartSubtotal = 0;
+
 document.addEventListener('DOMContentLoaded', () => {
     cardElement.mount('#card-element');
 
@@ -126,6 +129,43 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
+    document.getElementById('applyPromoBtn').addEventListener('click', async () => {
+        const promoCodeInput = document.getElementById('promoCodeInput');
+        const promoMessage = document.getElementById('promoMessage');
+        const code = promoCodeInput.value.trim();
+
+        promoMessage.textContent = ''; // Clear previous messages
+        appliedPromotion = null; // Reset applied promotion
+
+        if (!code) {
+            promoMessage.textContent = 'Please enter a promo code.';
+            promoMessage.style.color = 'orange';
+            loadCheckoutSummary(); // Recalculate totals without promo
+            return;
+        }
+
+        try {
+            const response = await ApiService.validatePromoCode(code);
+            if (response.success && response.promotion) {
+                appliedPromotion = {
+                    promo_code: response.promotion.code,
+                    percentage: response.promotion.discount_percentage 
+                };
+                promoMessage.textContent = `Promo code "${appliedPromotion.promo_code}" applied! You get ${appliedPromotion.percentage}% off.`;
+                promoMessage.style.color = 'green';
+                loadCheckoutSummary(); // Recalculate totals with promo
+            } else {
+                promoMessage.textContent = response.error || 'Invalid or expired promo code.';
+                promoMessage.style.color = 'red';
+                loadCheckoutSummary(); // Recalculate totals without promo
+            }
+        } catch (error) {
+            console.error('Error applying promo code:', error);
+            promoMessage.textContent = 'Error applying promo code. Please try again.';
+            promoMessage.style.color = 'red';
+            loadCheckoutSummary(); // Recalculate totals without promo
+        }
+    });
 
     document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -136,9 +176,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        let subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        let discountAmount = 0;
+        let finalTotal = 0;
+
+        if (appliedPromotion) {
+            discountAmount = subtotal * (appliedPromotion.percentage/100);
+            subtotal -= discountAmount;
+        }
+        
         const tax = subtotal * 0.07;
-        const total = subtotal + tax;
+        finalTotal = subtotal + tax;
+        console.log(finalTotal);
         const submitButton = document.getElementById('checkoutForm').querySelector('button[type="submit"]');
 
         const currentUser = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user'));
@@ -160,8 +209,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         const paymentMethodIdForOrder = selectedPaymentMethodRadio.value;
         const selectedPaymentMethodDisplay = selectedPaymentMethodRadio.nextElementSibling.textContent.trim();
 
+        if (finalTotal <= 0) {
+            alert('The total amount must be greater than zero to place an order.');
+            submitButton.disabled = false;
+            submitButton.textContent = 'Place Order';
+            return;
+        }
+
         try {
-            const { clientSecret } = await ApiService.createPaymentIntent(Math.round(total * 100), currentUser.id);
+            const { clientSecret } = await ApiService.createPaymentIntent(Math.round(finalTotal * 100), currentUser.id);
 
             if (!clientSecret) {
                 throw new Error('Failed to get client secret for payment.');
@@ -184,7 +240,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     cart: cart,
                     subtotal: subtotal.toFixed(2),
                     tax: tax.toFixed(2),
-                    total: total.toFixed(2),
+                    total: finalTotal.toFixed(2),
                     shipping: {
                         name: e.target.shippingName.value,
                         street: e.target.shippingStreet.value,
@@ -196,8 +252,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                         stripePaymentIntentId: paymentIntent.id, // Send the Payment Intent ID
                         display: selectedPaymentMethodDisplay
                     },
+                    promo_code_applied: appliedPromotion ? appliedPromotion.promo_code : null, // Send promo code
+                    discount_amount: discountAmount.toFixed(2),
                     date: new Date().toLocaleString()
                 };
+
+                console.log(order);
 
                 const placeOrderRes = await fetch('/api/orders/place', {
                     method: 'POST',
@@ -261,22 +321,33 @@ function displayPaymentMethods(paymentMethods, defaultPaymentMethod) {
     }
 }
 
+
 function loadCheckoutSummary() {
     const container = document.getElementById('checkoutSummary');
     const cart = JSON.parse(localStorage.getItem('cart')) || [];
 
     if (cart.length === 0) {
         container.innerHTML = '<p>Your cart is empty.</p>';
+        currentCartSubtotal = 0;
         return;
     }
 
-    let subtotal = 0;
+    let subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    currentCartSubtotal = subtotal; 
+
+    let discountAmount = 0;
+    if (appliedPromotion) {
+        discountAmount = subtotal * (appliedPromotion.percentage/100);
+        subtotal -= discountAmount;
+    }
+    
+    const tax = subtotal * 0.07;
+    const total = subtotal + tax;
+
     let html = '<table><thead><tr><th>Item</th><th>Price</th><th>Qty</th><th>Total</th></tr></thead><tbody>';
 
     cart.forEach(item => {
         const itemTotal = item.price * item.quantity;
-        subtotal += itemTotal;
-
         html += `
             <tr>
                 <td>${item.title}</td>
@@ -287,15 +358,17 @@ function loadCheckoutSummary() {
         `;
     });
 
-    const tax = subtotal * 0.07;
-    const total = subtotal + tax;
-
     html += `</tbody></table>
         <div class="summary-totals">
             <div class="summary-row">
             <span>Subtotal:</span>
-            <span>$${subtotal.toFixed(2)}</span>
+            <span>$${currentCartSubtotal.toFixed(2)}</span>
             </div>
+            ${appliedPromotion ? `
+            <div class="summary-row discount">
+                <span>Discount (${appliedPromotion.percentage}%):</span>
+                <span>-$${discountAmount.toFixed(2)}</span>
+            </div>` : ''}
             <div class="summary-row">
             <span>Tax (7%):</span>
             <span>$${tax.toFixed(2)}</span>

@@ -15,7 +15,7 @@ const dbRun = function(sql, params) {
     });
 };
 const dbGet = util.promisify(db.get).bind(db);
-
+const dbAll = util.promisify(db.all).bind(db); 
 const router = express.Router();
 
 let transporter;
@@ -36,7 +36,7 @@ let transporter;
 
 // Endpoint to place an order after payment is confirmed on client-side
 router.post('/place', async (req, res) => {
-    const { userId, cart, subtotal, tax, total, shipping, payment, date } = req.body;
+    const { userId, cart, subtotal, tax, total, shipping, payment, date, promo_code_applied, discount_amount } = req.body;
 
     if (!userId || !cart || cart.length === 0 || !total || !shipping || !payment || !payment.stripePaymentIntentId) {
         return res.status(400).json({ error: 'Missing required order details.' });
@@ -64,8 +64,10 @@ router.post('/place', async (req, res) => {
                 stripe_payment_intent_id,
                 payment_display,
                 order_date,
-                status
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                status,
+                promo_code_applied,
+                discount_amount
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
         const orderParams = [
             userId,
@@ -80,7 +82,9 @@ router.post('/place', async (req, res) => {
             payment.stripePaymentIntentId,
             payment.display,
             date,
-            'completed'
+            'completed',
+            promo_code_applied || null, 
+            parseFloat(discount_amount) || 0
         ];
 
         let orderId;
@@ -97,8 +101,9 @@ router.post('/place', async (req, res) => {
                 book_id,
                 quantity,
                 price_at_purchase,
-                title_at_purchase
-            ) VALUES (?, ?, ?, ?, ?)
+                title_at_purchase,
+                image_at_purchase
+            ) VALUES (?, ?, ?, ?, ?, ?)
         `;
         for (const item of cart) {
             try {
@@ -107,7 +112,8 @@ router.post('/place', async (req, res) => {
                     item.id,
                     item.quantity,
                     item.price,
-                    item.title
+                    item.title,
+                    item.image
                 ]);
             } catch (err) {
                 throw new Error(`Failed to insert order item for book ${item.id}: ${err.message}`);
@@ -139,6 +145,9 @@ router.post('/place', async (req, res) => {
                         <li><strong>Order ID:</strong> ${orderId}</li>
                         <li><strong>Confirmation Number:</strong> ${payment.stripePaymentIntentId}</li>
                         <li><strong>Order Date:</strong> ${date}</li>
+                        ${promo_code_applied ? `<li><strong>Promo Code Applied:</strong> ${promo_code_applied}</li>` : ''}
+                        ${discount_amount > 0 ? `<li><strong>Discount:</strong> -$${parseFloat(discount_amount).toFixed(2)}</li>` : ''}
+                    
                     </ul>
 
                     <h3>Shipping Information:</h3>
@@ -181,6 +190,60 @@ router.post('/place', async (req, res) => {
         console.error('Error placing order:', error);
         await dbRun('ROLLBACK;');
         res.status(500).json({ error: error.message || 'Failed to place order.' });
+    }
+});
+
+router.get('/history', async (req, res) => {
+    const userId = req.query.userId;
+
+    if (!userId) {
+        return res.status(400).json({ error: 'User ID is required to fetch order history.' });
+    }
+
+    try {
+        // Fetch all orders for the given user
+        const orders = await dbAll('SELECT * FROM orders WHERE user_id = ? ORDER BY order_date DESC', [userId]);
+
+        // For each order, fetch its items
+        const ordersWithItems = await Promise.all(orders.map(async (order) => {
+            const items = await dbAll('SELECT * FROM order_items WHERE order_id = ?', [order.id]);
+            return { ...order, items }; // Attach items to the order object
+        }));
+
+        res.json({ success: true, orders: ordersWithItems });
+
+    } catch (error) {
+        console.error('Error fetching order history:', error);
+        res.status(500).json({ error: error.message || 'Failed to fetch order history.' });
+    }
+});
+
+router.get('/:orderId', async (req, res) => {
+    const orderId = req.params.orderId;
+
+    if (!orderId) {
+        return res.status(400).json({ error: 'Order ID is required.' });
+    }
+
+    try {
+        // Fetch the main order details
+        const order = await dbGet('SELECT * FROM orders WHERE id = ?', [orderId]);
+
+        if (!order) {
+            return res.status(404).json({ error: 'Order not found.' });
+        }
+
+        // Fetch all items for this order
+        const items = await dbAll('SELECT * FROM order_items WHERE order_id = ?', [orderId]);
+
+        // Combine order and its items
+        const fullOrder = { ...order, items };
+
+        res.json({ success: true, order: fullOrder });
+
+    } catch (error) {
+        console.error('Error fetching single order:', error);
+        res.status(500).json({ error: error.message || 'Failed to fetch order details.' });
     }
 });
 

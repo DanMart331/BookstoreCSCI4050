@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const paymentsRouter = require('./routes/payments');
 const ordersRouter = require('./routes/orders'); 
+const promotionsRouter = require('./routes/promotions');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -20,6 +21,7 @@ app.use('/api/admin/users', require('./routes/admin_users'));
 app.use('/api/admin/promotions', require('./routes/admin_promotions'));
 app.use('/api/payments', paymentsRouter); 
 app.use('/api/orders', ordersRouter); 
+app.use('/api/promotions', promotionsRouter);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

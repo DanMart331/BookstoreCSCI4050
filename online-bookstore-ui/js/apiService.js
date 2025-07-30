@@ -176,6 +176,18 @@ class ApiService {
   static async createPaymentIntent(amount, userId) {
         return ApiService.request('/api/payments/create-intent', 'POST', { amount, userId }); // FIX: Use ApiService.request
     }
+
+  static async getOrderHistory(userId) {
+        return ApiService.request(`/api/orders/history?userId=${userId}`);
+    }
+
+  static async getSingleOrder(orderId) {
+        return ApiService.request(`/api/orders/${orderId}`);
+    }
+
+  static async validatePromoCode(promoCode) {
+        return ApiService.request(`/api/promotions/validate?promoCode=${promoCode}`);
+    }
 }
 
 window.API_CONFIG = API_CONFIG;

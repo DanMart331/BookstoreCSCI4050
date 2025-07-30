@@ -80,67 +80,8 @@
         </div>
     </div>
 
-  
+  <script src="js/order_history.js"></script>
+  <script src="js/apiService.js"></script>
   <script src="js/scripts.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      updateNav();
-      loadOrderHistory();
-    });
-
-    function loadOrderHistory() {
-      const history = JSON.parse(localStorage.getItem('orderHistory')) || [];
-      const container = document.getElementById('history');
-      
-      if (history.length === 0) {
-        container.innerHTML = '<p>You Have No Past Orders.</p>';
-        return;
-      }
-      
-      container.innerHTML = '';
-      
-      history.reverse().forEach((order, index) => {
-        const orderCard = document.createElement('div');
-        orderCard.className = 'order-card';
-        
-        let itemsHtml = '';
-        order.cart.forEach(item => {
-          itemsHtml += `
-            <div class="order-item">
-              <img src="${item.image || 'assets/book_images/default.jpg'}" alt="${item.title}">
-              <div class="order-item-info">
-                <h4>${item.title}</h4>
-                <p>$${item.price.toFixed(2)} × ${item.quantity}</p>
-              </div>
-            </div>
-          `;
-        });
-        
-        orderCard.innerHTML = `
-          <div class="order-header">
-            <h3>Order #${history.length - index}</h3>
-            <p>${order.date}</p>
-          </div>
-          <div class="order-items">${itemsHtml}</div>
-          <div class="order-total">
-            <p>Total: $${order.total}</p>
-            <button onclick="reorder(${index})">Reorder</button>
-          </div>
-        `;
-        
-        container.appendChild(orderCard);
-      });
-    }
-
-    function reorder(index) {
-      const history = JSON.parse(localStorage.getItem('orderHistory')) || [];
-      const order = history.reverse()[index];
-      
-      if (order && order.cart) {
-        localStorage.setItem('cart', JSON.stringify(order.cart));
-        window.location.href = 'cart.html';
-      }
-    }
-  </script>
 </body>
 </html>
