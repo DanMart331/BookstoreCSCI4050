@@ -170,7 +170,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const user = getCurrentUser();
+        const cartKey = user ? `cart_${user.id}` : 'cart';
+        const cart = JSON.parse(localStorage.getItem(cartKey)) || [];
         if (cart.length === 0) {
             alert('Your cart is empty.');
             return;
@@ -324,8 +326,9 @@ function displayPaymentMethods(paymentMethods, defaultPaymentMethod) {
 
 function loadCheckoutSummary() {
     const container = document.getElementById('checkoutSummary');
-    const cart = JSON.parse(localStorage.getItem('cart')) || [];
-
+    const user = getCurrentUser();
+    const cartKey = user ? `cart_${user.id}` : 'cart';
+    const cart = JSON.parse(localStorage.getItem(cartKey)) || [];    console.log(cart);
     if (cart.length === 0) {
         container.innerHTML = '<p>Your cart is empty.</p>';
         currentCartSubtotal = 0;

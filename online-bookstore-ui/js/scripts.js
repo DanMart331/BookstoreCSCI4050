@@ -134,18 +134,25 @@ async function handleAdminLogin(e) {
 
 function handleLogout(e) {
   e.preventDefault();
+  const user = getCurrentUser();
+  if (user) localStorage.removeItem(`cart_${user.id}`);
   localStorage.removeItem('user');
   sessionStorage.removeItem('user');
   updateNav();
+  updateCartCount();
   window.location.href = 'index.html';
 }
 
 function updateCartCount() {
-  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-  const total = cart.reduce((sum, i) => sum + i.quantity, 0);
-  const el = document.getElementById('cartCount');
-  if (el) el.textContent = total;
+  const user = getCurrentUser();
+  const cartKey = user ? `cart_${user.id}` : 'cart';
+  const cart = JSON.parse(localStorage.getItem(cartKey)) || [];
+  const count = cart.reduce((total, item) => total + item.quantity, 0);
+  const cartCountEl = document.getElementById('cartCount');
+  if (cartCountEl) cartCountEl.textContent = count;
+
 }
+
 
 function viewBookDetails(id) {
   window.location.href = `book_details.html?id=${id}`;
@@ -159,18 +166,22 @@ async function addToCart(id) {
 
   try {
     const book = await ApiService.getBookDetails(id);
-    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const cart = JSON.parse(localStorage.getItem(getCartKey())) || [];
     const ex = cart.find(i => i.id === book.id);
     if (ex) ex.quantity += 1;
     else cart.push({ id: book.id, title: book.title, price: book.price, image: book.image, quantity: 1 });
-    localStorage.setItem('cart', JSON.stringify(cart));
+
+    localStorage.setItem(getCartKey(), JSON.stringify(cart));
     updateCartCount();
     alert(`${book.title} added to cart`);
+    console.log(JSON.stringify(cart));
+    console.log(getCartKey());
   } catch (err) {
     console.error('Failed to add to cart:', err);
     alert('Failed to add to cart', true);
   }
 }
+
 
 async function loadFeaturedBooks() {
   const container = document.getElementById('featuredBooks');
@@ -247,6 +258,11 @@ async function searchBooks() {
   }
 }
 
+function getCartKey() {
+  const user = getCurrentUser();
+  return user ? `cart_${user.id}` : 'cart_guest';
+}
+
 function renderBooks(container, books) {
   container.innerHTML = '';
   if (!books || books.length === 0) {
@@ -302,4 +318,8 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelector('.modal .close')?.addEventListener('click', function() {
     document.getElementById('apiErrorModal').style.display = 'none';
   });
+});
+
+window.addEventListener('storage', () => {
+  updateCartCount();
 });

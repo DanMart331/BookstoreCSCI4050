@@ -47,8 +47,7 @@ function addEventListenersToRows() {
 
       // Set the selected user ID and admin status
       selectedUserId = row.dataset.userId;
-      selectedUserIsAdmin = row.dataset.isAdmin === 'true';
-
+      selectedUserIsAdmin = row.dataset.isAdmin == 1;
       // Update the global buttons' state
       updateGlobalButtonState();
     });
@@ -59,7 +58,7 @@ function updateGlobalButtonState() {
   if (selectedUserId) {
     deleteSelectedUserBtn.disabled = false;
     toggleAdminSelectedUserBtn.disabled = false;
-
+    
     // Update the text and class for the admin toggle button
     if (selectedUserIsAdmin) {
       toggleAdminSelectedUserBtn.textContent = 'Remove Admin';

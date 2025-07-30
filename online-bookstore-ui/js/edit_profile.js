@@ -44,6 +44,7 @@ async function loadProfile() {
   const { user: u } = await res.json();
   document.getElementById('name').value       = u.name;
   document.getElementById('email').value      = u.email;
+  document.getElementById('oldPassword').value = u.password;
   document.getElementById('street').value     = u.street || '';
   document.getElementById('city').value       = u.city || '';
   document.getElementById('state').value      = u.state || '';
@@ -55,7 +56,7 @@ async function loadProfile() {
 
 form.addEventListener('submit', async e => {
   e.preventDefault();
-  const user = JSON.parse(localStorage.getItem('user'));
+  const user = getStoredUser();
 
   const payload = {
     id: user.id,
@@ -66,6 +67,8 @@ form.addEventListener('submit', async e => {
     zip:        zip.value,
     promotion_opt_in: promoOpt.checked,
   };
+
+  console.log(payload);
 
   if (oldPassword.value && newPassword.value) {
     payload.password = newPassword.value;

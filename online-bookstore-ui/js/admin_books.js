@@ -7,11 +7,15 @@ const newBookBtn     = document.getElementById('newBookBtn');
 function openModal(book = {}) {
   modal.style.display = 'flex';
   document.getElementById('modalTitle').textContent = book.id ? 'Edit Book' : 'New Book';
-  ['bookId','title','author','genre','price','image'].forEach(id => {
+
+  document.getElementById('bookId').value = book.id || '';
+
+  ['title','author','genre','price','image'].forEach(id => {
     document.getElementById(id).value = book[id] || '';
   });
-  document.getElementById('featured').checked    = !!book.featured;
-  document.getElementById('comingSoon').checked  = !!book.coming_soon;
+
+  document.getElementById('featured').checked   = !!book.featured;
+  document.getElementById('comingSoon').checked = !!book.coming_soon;
 }
 
 closeBtn.onclick = () => modal.style.display = 'none';
@@ -58,7 +62,8 @@ function attachRowHandlers() {
 
 form.onsubmit = async e => {
   e.preventDefault();
-  const id   = document.getElementById('bookId').value;
+  const id = document.getElementById('bookId').value;
+  console.log(id);
   const body = {
     title:       document.getElementById('title').value,
     author:      document.getElementById('author').value,

@@ -23,7 +23,7 @@
         <a href="#" id="logoutLink" style="display:none;">Logout</a>
         <a href="register.html" id="registerLink">Register</a>
         <a href="edit_profile.html" id="profileLink" style="display:none;">Profile</a>
-        <a href="order_history.html" id="orderHistoryLink" style="display:none;">Order History</a> <!-- New: Order History link -->
+        <a href="order_history.html" id="orderHistoryLink" style="display:none;">Order History</a>
         <a href="admin_login.html" id="adminLoginLink">Admin Login</a>
         <a href="admin.html" id="adminDashboardLink" style="display:none;">
             <i class="fas fa-user-shield"></i> Dashboard
@@ -51,13 +51,19 @@
     </div>
   </div>
 
-  
-  <script src="js/scripts.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       updateNav();
+      updateCartCount();
       displayCartItems();
     });
+
+    function updateCartCount() {
+      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+      const cartCountEl = document.getElementById('cartCount');
+      if (cartCountEl) cartCountEl.textContent = count;
+    }
 
     async function displayCartItems() {
       const container = document.getElementById('cartItems');
@@ -65,8 +71,19 @@
       const taxEl = document.getElementById('tax');
       const totalEl = document.getElementById('total');
       
-      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const user = getCurrentUser();
+      console.log(user);
+      if (!user) {
+        alert('Please log in to view your cart');
+        window.location.href = 'login.html';
+        return;
+      }
+      const cartKey = `cart_${user.id}`;
+      const cart = JSON.parse(localStorage.getItem(cartKey)) || [];
+
       container.innerHTML = '';
+
+      console.log(cart);
       
       if (cart.length === 0) {
         container.innerHTML = '<p>Your Cart Is Empty.</p>';
@@ -85,6 +102,7 @@
         const img = document.createElement('img');
         img.src = item.image || 'assets/book_images/default.jpg';
         img.alt = item.title;
+        img.onerror = () => { img.src = 'assets/book_images/default.jpg'; };
         
         const infoDiv = document.createElement('div');
         infoDiv.className = 'item-info';
@@ -140,29 +158,36 @@
     }
 
     function updateQuantity(bookId, change) {
-      let cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user) return;
+
+      const cartKey = `cart_${user.id}`;
+      let cart = JSON.parse(localStorage.getItem(cartKey)) || [];
       const item = cart.find(item => item.id === bookId);
-      
+
       if (item) {
         item.quantity += change;
-        
         if (item.quantity <= 0) {
           cart = cart.filter(item => item.id !== bookId);
         }
-        
-        localStorage.setItem('cart', JSON.stringify(cart));
+        localStorage.setItem(cartKey, JSON.stringify(cart));
         updateCartCount();
         displayCartItems();
       }
     }
 
     function removeFromCart(bookId) {
-      let cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const user = getCurrentUser();
+      if (!user) return;
+
+      const cartKey = `cart_${user.id}`;
+      let cart = JSON.parse(localStorage.getItem(cartKey)) || [];
       cart = cart.filter(item => item.id !== bookId);
-      localStorage.setItem('cart', JSON.stringify(cart));
+      localStorage.setItem(cartKey, JSON.stringify(cart));
       updateCartCount();
       displayCartItems();
     }
   </script>
+  <script src="js/scripts.js"></script>
 </body>
 </html>
